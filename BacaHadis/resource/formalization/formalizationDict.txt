@@ -1,3 +1,4 @@
+khbaits	khabaits
 quran	alquran
 kuran	alquran
 aqiqah	akikah
@@ -80,6 +81,7 @@ washiyat	wasiat
 wuduk	wudu
 wudlu	wudu
 wudhu	wudu
+berwudlu	wudu
 zhalim	zalim
 dolim	zalim
 lalim	zalim

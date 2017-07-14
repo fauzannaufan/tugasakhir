@@ -1,7 +1,13 @@
 package bacahadis;
 
+import IndonesianNLP.IndonesianSentenceFormalization;
+import IndonesianNLP.IndonesianSentenceTokenizer;
+import IndonesianNLP.IndonesianStemmer;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.json.simple.JSONArray;
@@ -64,46 +70,118 @@ public class BacaHadis {
         }
     }
     
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) {
-        int related = 0;
-        int unrelated = 0;
+    public ArrayList<String> preprocess(String text, boolean unique) {
+        IndonesianStemmer stemmer = new IndonesianStemmer();
+        IndonesianSentenceFormalization formalizer = new IndonesianSentenceFormalization();
+        IndonesianSentenceTokenizer tokenizer = new IndonesianSentenceTokenizer();
+        
+        //Membuang tanda-tanda baca
+        text = text.replaceAll("['`,()\";.:?!@#$%^&*]", "");
+        text = text.replaceAll("[/]", " ");
+        
+        //Membuang nama-nama periwayat hadis
+        while (text.contains("[") || text.contains("]")) {
+            int idx = text.indexOf("[");
+            String sub;
+            if (text.indexOf("]",idx)+1 == text.length()) {
+                sub = text.substring(idx);
+            } else {
+                sub = text.substring(idx,text.indexOf("]",idx)+2);
+            }
+            text = text.replace(sub, "");
+        }
+        
+        // Memproses dash
+        while (text.contains("-")) {
+            int indexDash = text.indexOf("-");
+            int indexLastSpace = text.lastIndexOf(" ", indexDash);
+            if (indexLastSpace < 0) {
+                indexLastSpace = 0;
+            } else {
+                indexLastSpace += 1;
+            }
+            int indexSpace = text.indexOf(" ", indexDash);
+            if (indexSpace < 0) {
+                indexSpace = text.length();
+            }
+            String sub1 = text.substring(indexLastSpace, indexDash).toLowerCase();
+            String sub2 = text.substring(indexDash+1, indexSpace).toLowerCase();
+            if (stemmer.stem(sub1).equals(stemmer.stem(sub2))) {
+                //Hukum-hukum -> hukum
+                text = text.substring(0,indexDash)+text.substring(indexSpace);
+            } else {
+                //Jual-beli -> jual beli
+                text = text.replace("-", " ");
+            }
+        }
+        
+        //Menghilangkan stopwords
+        formalizer.initStopword();
+        text = formalizer.deleteStopword(text.toLowerCase());
+        
+        //Tokenisasi
+        ArrayList<String> tokens = new ArrayList<>();
+        tokens.addAll(tokenizer.tokenizeSentence(text));
+        
+        //Formalisasi dan Stemming
+        for (int i=0;i<tokens.size();i++) {
+            String formalized = formalizer.formalizeWord(tokens.get(i).toLowerCase());
+            String stemmed = stemmer.stem(formalized);
+            tokens.set(i, stemmed);
+        }
+        
+        //Unique
+        if (unique) {
+            Set<String> hs = new HashSet<>();
+            hs.addAll(tokens);
+            tokens.clear();
+            tokens.addAll(hs);
+        }
+        
+        //System.out.println(text);
+        
+        return tokens;
+    }
+    
+    public int cekJumlahHadis(String imam) {
+        int size = -1;
         
         try {
             JSONParser parser = new JSONParser();
-            String filename = "E:/Semester 8/TA/TA 1/hadits-data/data/bukhari.json";
+            String filename = "E:/Semester 8/TA/TA 1/hadits-data/data/"+imam+".json";
             
             Object obj = parser.parse(new FileReader(filename));
             JSONArray arr = (JSONArray) obj;
-            new BacaHadis().searchHadis(arr, "wahyu");
-            //new BacaHadis().getHadisById(arr, 14);
-            //new BacaHadis().searchRelatedHadis(arr, 4613);
-            /*
-            JSONObject obj2 = (JSONObject)arr.get(0);
-            JSONArray arr2 = (JSONArray)obj2.get("related");
-            System.out.println(arr2);*/
-            
-            /*System.out.println("Panjang array : "+arr.size());
-            for (int i=0;i<arr.size();i++) {
-                JSONObject obj2 = (JSONObject)arr.get(i);
-                JSONArray arr2 = (JSONArray)obj2.get("related");
-                int size = arr2.size();
-                if (size > 0) {
-                    related += 1;
-                } else {
-                    System.out.println(i);
-                    unrelated += 1;
-                }
-            }
-            
-            System.out.println("Related = "+related);
-            System.out.println("Unrelated = "+unrelated);*/
+            size = arr.size();
             
         } catch (IOException | ParseException ex) {
             Logger.getLogger(BacaHadis.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        return size;
+    }
+    
+    public String bacaHadis(String imam, int idx) {
+        
+        String teks = null;
+        
+        try {
+            JSONParser parser = new JSONParser();
+            String filename = "E:/Semester 8/TA/TA 1/hadits-data/data/"+imam+".json";
+            
+            Object obj = parser.parse(new FileReader(filename));
+            JSONArray arr = (JSONArray) obj;
+            
+            JSONObject obj2 = (JSONObject)arr.get(idx);
+            String indo = obj2.get("indo").toString();
+            String no_hadis = obj2.get("haditsId").toString();
+            teks = no_hadis+"<"+indo;
+            
+        } catch (IOException | ParseException ex) {
+            Logger.getLogger(BacaHadis.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return teks;
     }
     
 }
