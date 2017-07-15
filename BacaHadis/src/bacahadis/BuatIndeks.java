@@ -14,7 +14,7 @@ public class BuatIndeks {
         //Inisialisasi variabel
         BacaHadis B = new BacaHadis();
         DB db = new DB();
-        MongoCollection<Document> coll = db.connect();
+        MongoCollection<Document> coll;
         
         String imam = "bukhari";
         String teks;
@@ -23,7 +23,10 @@ public class BuatIndeks {
         int jumlah;
         
         jumlah = B.cekJumlahHadis(imam);
-        for (int i=2;i<10;i++) {
+        coll = db.connect(imam);
+        for (int i=0;i<jumlah;i++) {
+            System.out.println(i);
+            
             //Ambil term-term dari hadis
             teks = B.bacaHadis(imam, i);
             no_hadis = teks.substring(0,teks.indexOf("<"));
@@ -33,8 +36,6 @@ public class BuatIndeks {
             
             //Insert ke DB
             for (int j=0;j<output.size();j++) {
-                System.out.print(no_hadis+"  ");
-                System.out.println(output.get(j));
                 if (db.find(coll, output.get(j))) {
                     //Update existing
                     db.update(coll, no_hadis, output.get(j));

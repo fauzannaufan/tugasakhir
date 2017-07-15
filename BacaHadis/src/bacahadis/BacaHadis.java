@@ -33,6 +33,7 @@ public class BacaHadis {
                 i++;
             }
         }
+        System.out.println(i);
         System.out.println(obj2);
     }
     
@@ -118,7 +119,7 @@ public class BacaHadis {
         //Menghilangkan stopwords
         formalizer.initStopword();
         text = formalizer.deleteStopword(text.toLowerCase());
-        
+        System.out.println(text);
         //Tokenisasi
         ArrayList<String> tokens = new ArrayList<>();
         tokens.addAll(tokenizer.tokenizeSentence(text));
@@ -182,6 +183,25 @@ public class BacaHadis {
         }
         
         return teks;
+    }
+    
+    public static void main (String args[]) {
+        try {
+            JSONParser parser = new JSONParser();
+            String imam = "bukhari";
+            String filename = "E:/Semester 8/TA/TA 1/hadits-data/data/"+imam+".json";
+            
+            Object obj = parser.parse(new FileReader(filename));
+            JSONArray arr = (JSONArray) obj;
+            
+            String teks = new BacaHadis().bacaHadis(imam, 268);
+            String indo = teks.substring(teks.indexOf("<")+1);
+            ArrayList<String> a = new BacaHadis().preprocess(indo, true);
+            
+            new BacaHadis().getHadisById(arr,1917);
+        } catch (IOException | ParseException ex) {
+            Logger.getLogger(BacaHadis.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
 }

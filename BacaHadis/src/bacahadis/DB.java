@@ -4,7 +4,6 @@ import com.mongodb.Block;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import static java.lang.Math.toIntExact;
 import java.util.Arrays;
 import org.bson.Document;
 
@@ -23,14 +22,14 @@ public class DB {
         return L != 0;
     }
     
-    public MongoCollection<Document> connect() {
+    public MongoCollection<Document> connect(String imam) {
         
         MongoCollection<Document> coll = null;
         
         try {
             MongoClient client = new MongoClient();
             MongoDatabase db = client.getDatabase("test");
-            coll = db.getCollection("terms");
+            coll = db.getCollection(imam);
             System.out.println("Connected");
         } catch (Exception e) {
             System.err.println( e.getClass().getName() + ": " + e.getMessage() );
