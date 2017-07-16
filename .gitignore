@@ -3,3 +3,16 @@
 /SearchHadis/nbbuild/
 /SearchHadis/dist/
 /SearchHadis/nbdist/
+
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+*.war
+*.ear
+*.sar
+*.class
