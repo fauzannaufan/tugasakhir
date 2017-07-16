@@ -908,7 +908,6 @@ anjangsana
 anjing
 anjlok
 anjung
-anjur
 ankilosis
 anoa
 anode
@@ -8742,7 +8741,6 @@ hauri
 haus
 haustorium
 hawa
-hawalah
 hawar
 hawari
 hawiah
@@ -9229,6 +9227,7 @@ humoris
 humoristis
 humorolog
 humus
+hun
 huncue
 huni
 hunjam
@@ -15761,7 +15760,6 @@ maki
 makin
 making
 makiyah
-makkah
 maklaf
 maklum
 maklumat
@@ -27899,7 +27897,6 @@ wajib
 wajik
 wak
 wakaf
-wakalah
 wakil
 waktu
 wakun

@@ -12,7 +12,6 @@ akhiri
 akhirnya
 aku
 akulah
-al
 amat
 amatlah
 anda
@@ -27,10 +26,8 @@ apakah
 apalagi
 apatah
 artinya
-as
 asal
 asalkan
-asy
 atas
 atau
 ataukah
@@ -43,6 +40,7 @@ bagaimana
 bagaimanakah
 bagaimanapun
 bagi
+bagian
 bahkan
 bahwa
 bahwasanya
@@ -139,7 +137,6 @@ cukuplah
 cuma
 dahulu
 dalam
-dalamnya
 dan
 dapat
 dari
@@ -246,6 +243,7 @@ hal
 hampir
 hanya
 hanyalah
+hari
 harus
 haruslah
 harusnya
@@ -342,7 +340,6 @@ kira
 kira-kira
 kiranya
 kita
-kitab
 kitalah
 kok
 kurang
@@ -644,6 +641,7 @@ sesuatu
 sesuatunya
 sesudah
 sesudahnya
+setelah
 setempat
 setengah
 seterusnya
@@ -749,6 +747,7 @@ usai
 waduh
 wah
 wahai
+waktu
 waktunya
 walau
 walaupun

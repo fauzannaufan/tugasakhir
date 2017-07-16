@@ -119,7 +119,7 @@ public class BacaHadis {
         //Menghilangkan stopwords
         formalizer.initStopword();
         text = formalizer.deleteStopword(text.toLowerCase());
-        System.out.println(text);
+        
         //Tokenisasi
         ArrayList<String> tokens = new ArrayList<>();
         tokens.addAll(tokenizer.tokenizeSentence(text));
@@ -140,6 +140,7 @@ public class BacaHadis {
         }
         
         //System.out.println(text);
+        System.out.println(tokens);
         
         return tokens;
     }
@@ -194,11 +195,12 @@ public class BacaHadis {
             Object obj = parser.parse(new FileReader(filename));
             JSONArray arr = (JSONArray) obj;
             
-            String teks = new BacaHadis().bacaHadis(imam, 268);
-            String indo = teks.substring(teks.indexOf("<")+1);
-            ArrayList<String> a = new BacaHadis().preprocess(indo, true);
+            //String teks = new BacaHadis().bacaHadis(imam, 1531);
+            //String indo = teks.substring(teks.indexOf("<")+1);
+            //String indo = "shalat subuh berjamaah di masjid";
+            //ArrayList<String> a = new BacaHadis().preprocess(indo, true);
             
-            new BacaHadis().getHadisById(arr,1917);
+            //new BacaHadis().getHadisById(arr,6421);
         } catch (IOException | ParseException ex) {
             Logger.getLogger(BacaHadis.class.getName()).log(Level.SEVERE, null, ex);
         }
