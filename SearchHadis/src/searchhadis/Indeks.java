@@ -13,7 +13,7 @@ public class Indeks {
     public void buatIndeks(String imam) {
         //Inisialisasi variabel
         Hadis H = new Hadis();
-        Database db = new Database();
+        Database DB = new Database();
         ProsesTeks PT = new ProsesTeks();
         MongoCollection<Document> coll;
         
@@ -23,7 +23,7 @@ public class Indeks {
         int jumlah;
         
         jumlah = H.getJumlahHadis(imam);
-        coll = db.connect(imam);
+        coll = DB.connect(imam);
         for (int i=0;i<jumlah;i++) {
             System.out.println(i);
             
@@ -35,12 +35,12 @@ public class Indeks {
             
             //Insert ke DB
             for (int j=0;j<output.size();j++) {
-                if (db.find(coll, output.get(j))) {
+                if (DB.find(coll, output.get(j))) {
                     //Update existing
-                    db.update(coll, no_hadis, output.get(j));
+                    DB.update(coll, no_hadis, output.get(j));
                 } else {
                     //Insert new
-                    db.insert(coll, no_hadis, output.get(j));
+                    DB.insert(coll, no_hadis, output.get(j));
                 }
             }
         }

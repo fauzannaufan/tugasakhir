@@ -3,7 +3,9 @@ package searchhadis;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import org.bson.Document;
 
 /**
@@ -52,5 +54,22 @@ public class Database {
                         new Document().append("id", nohadis));
         
         coll.updateOne(new Document().append("nama", term), doc);
+    }
+    
+    public int getDf(MongoCollection<Document> coll, String term) {
+        Document df = coll.find(new Document("nama", term))
+                .projection(new Document("df", 1)
+                .append("_id", 0)).first();
+        
+        return Integer.parseInt(df.get("df").toString());
+    }
+    
+    public ArrayList<Integer> getIds(MongoCollection<Document> coll, String term) {
+        ArrayList<Document> arrays = coll.find(new Document("nama", term))
+                .projection(new Document("id", 1)
+                .append("_id", 0)).into(new ArrayList<Document>());
+        ArrayList<Integer> ids = (ArrayList<Integer>)arrays.get(0).get("id");
+        Collections.sort(ids);
+        return ids;
     }
 }
