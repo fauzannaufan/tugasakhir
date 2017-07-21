@@ -4,8 +4,7 @@ import IndonesianNLP.IndonesianSentenceFormalization;
 import IndonesianNLP.IndonesianSentenceTokenizer;
 import IndonesianNLP.IndonesianStemmer;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
+
 
 /**
  *
@@ -13,10 +12,9 @@ import java.util.Set;
  */
 public class ProsesTeks {
     
-    public ArrayList<String> preproses(String text) {
-        IndonesianStemmer stemmer = new IndonesianStemmer();
-        IndonesianSentenceFormalization formalizer = new IndonesianSentenceFormalization();
+    public ArrayList<String> tokenisasi (String text) {
         IndonesianSentenceTokenizer tokenizer = new IndonesianSentenceTokenizer();
+        IndonesianStemmer stemmer = new IndonesianStemmer();
         
         //Membuang tanda-tanda baca
         text = text.replaceAll("['`,()\";.:?!@#$%^&*]", "");
@@ -58,31 +56,67 @@ public class ProsesTeks {
             }
         }
         
-        //Menghilangkan stopwords
+        return tokenizer.tokenizeSentence(text);
+    }
+    
+    public ArrayList<String> deleteStopword(ArrayList<String> tokens) {
+        IndonesianSentenceFormalization formalizer = new IndonesianSentenceFormalization();
         formalizer.initStopword();
-        text = formalizer.deleteStopword(text.toLowerCase());
         
-        //Tokenisasi
-        ArrayList<String> tokens = new ArrayList<>();
-        tokens.addAll(tokenizer.tokenizeSentence(text));
-        
-        //Formalisasi dan Stemming
         for (int i=0;i<tokens.size();i++) {
-            String formalized = formalizer.formalizeWord(tokens.get(i).toLowerCase());
-            String stemmed = stemmer.stem(formalized);
-            tokens.set(i, stemmed);
+            String s = formalizer.deleteStopword(tokens.get(i).toLowerCase());
+            if (s.equals("")) {
+                tokens.remove(i);
+                i--;
+            }
         }
-        
-        //Unique
-        Set<String> hs = new HashSet<>();
-        hs.addAll(tokens);
-        tokens.clear();
-        tokens.addAll(hs);
-        
-        //System.out.println(text);
-        //System.out.println(tokens);
         
         return tokens;
     }
+    
+    public ArrayList<String> normalisasi(ArrayList<String> tokens) {
+        IndonesianSentenceFormalization formalizer = new IndonesianSentenceFormalization();
+        
+        for (int i=0;i<tokens.size();i++) {
+            String formalized = formalizer.formalizeWord(tokens.get(i).toLowerCase());
+            tokens.set(i, formalized);
+        }
+        
+        return tokens;
+    }
+    
+    public ArrayList<String> stemming(ArrayList<String> tokens) {
+        IndonesianStemmer stemmer = new IndonesianStemmer();
+        
+        for (int i=0;i<tokens.size();i++) {
+            String stemmed = stemmer.stem(tokens.get(i));
+            tokens.set(i, stemmed);
+        }
+        
+        return tokens;
+    }
+    
+    public ArrayList<String> preproses(String text) {
+        ArrayList<String> arr = tokenisasi(text);
+        arr = deleteStopword(arr);
+        arr = normalisasi(arr);
+        arr = stemming(arr);
+        
+        return arr;
+    }
+    
+    //Hanya untuk testing modul
+    /*public static void main (String args[]) {
+        ProsesTeks PT = new ProsesTeks();
+        Hadis H = new Hadis();
+        
+        for (int i=0;i<1;i++) {
+            String text = H.getTeksHadis("bukhari", i);
+            System.out.println(text);
+            ArrayList<String> arr = PT.preproses(text);
+            System.out.println(arr);
+        }
+        
+    }*/
     
 }

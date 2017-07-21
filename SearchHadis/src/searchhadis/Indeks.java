@@ -16,6 +16,7 @@ public class Indeks {
         Database DB = new Database();
         ProsesTeks PT = new ProsesTeks();
         MongoCollection<Document> coll;
+        MongoCollection<Document> coll2;
         
         String teks;
         String indo;
@@ -23,7 +24,8 @@ public class Indeks {
         int jumlah;
         
         jumlah = H.getJumlahHadis(imam);
-        coll = DB.connect(imam);
+        coll = DB.connect("indeks");
+        coll2 = DB.connect("doclength");
         for (int i=0;i<jumlah;i++) {
             System.out.println(i);
             
@@ -33,7 +35,7 @@ public class Indeks {
             indo = teks.substring(teks.indexOf("<")+1);
             ArrayList<String> output = PT.preproses(indo);
             
-            //Insert ke DB
+            //Insert term ke DB
             for (int j=0;j<output.size();j++) {
                 if (DB.find(coll, output.get(j))) {
                     //Update existing
@@ -43,6 +45,9 @@ public class Indeks {
                     DB.insert(coll, no_hadis, output.get(j));
                 }
             }
+            
+            //Insert document length
+            DB.insertDocLength(coll2, no_hadis, output.size());
         }
     }
     

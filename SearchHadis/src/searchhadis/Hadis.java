@@ -15,6 +15,31 @@ import org.json.simple.parser.ParseException;
  */
 public class Hadis {
     
+    public String setNomorHadis(String imam, String nomor) {
+        String no_hadis = "";
+        switch(imam) {
+            case "abudaud" :
+                no_hadis = "AB"; break;
+            case "ahmad" :
+                no_hadis = "AH"; break;
+            case "bukhari" :
+                no_hadis = "B"; break;
+            case "darimi" :
+                no_hadis = "D"; break;
+            case "ibnumajah" :
+                no_hadis = "I"; break;
+            case "malik" :
+                no_hadis = "MA"; break;
+            case "muslim" :
+                no_hadis = "MU"; break;
+            case "nasai" :
+                no_hadis = "N"; break;
+            case "tirmidzi" :
+                no_hadis = "T"; break;
+        }
+        return no_hadis+nomor;
+    }
+    
     public int getJumlahHadis(String imam) {
         int size = -1;
         
@@ -34,7 +59,7 @@ public class Hadis {
     
     public String getTeksHadis(String imam, int idx) {
         
-        String teks = null;
+        String teks = "";
         
         try {
             JSONParser parser = new JSONParser();
@@ -45,7 +70,7 @@ public class Hadis {
             
             JSONObject obj2 = (JSONObject)arr.get(idx);
             String indo = obj2.get("indo").toString();
-            String no_hadis = obj2.get("haditsId").toString();
+            String no_hadis = setNomorHadis(imam,obj2.get("haditsId").toString());
             teks = no_hadis+"<"+indo;
             
         } catch (IOException | ParseException ex) {
@@ -54,5 +79,13 @@ public class Hadis {
         
         return teks;
     }
+    
+    //Hanya untuk testing modul
+    /*public static void main (String args[]) {
+        //for (int i=0;i<20;i++) {
+            String s = new Hadis().setNomorHadis("bukhari", "501");
+            System.out.println(s);
+        //}
+    }*/
     
 }
