@@ -151,4 +151,19 @@ public class Database {
         
         return Double.parseDouble(avg.get("avgLength").toString());
     }
+    
+    public ArrayList<Document> getProbBIM(ArrayList<String> terms) {
+        MongoCollection<Document> coll = connect("bim");
+        
+        ArrayList<Document> arr = coll.find(new Document("term", terms))
+                .projection(new Document("_id", 0)
+                .append("prob", 1)).into(new ArrayList<Document>());
+        
+        if (arr.size() > 0) {
+            ArrayList<Document> doc = (ArrayList<Document>)arr.get(0).get("prob");
+            return doc;
+        } else {
+            return null;
+        }
+    }
 }

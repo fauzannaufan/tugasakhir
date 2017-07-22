@@ -4,6 +4,7 @@ import IndonesianNLP.IndonesianSentenceFormalization;
 import IndonesianNLP.IndonesianSentenceTokenizer;
 import IndonesianNLP.IndonesianStemmer;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 
 
@@ -111,6 +112,7 @@ public class ProsesTeks {
             }
         }
         
+        Collections.sort(arr);
         return arr;
     }
     

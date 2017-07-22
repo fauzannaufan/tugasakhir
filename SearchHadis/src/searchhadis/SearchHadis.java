@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import org.bson.Document;
 
 /**
  *
@@ -62,22 +63,30 @@ public class SearchHadis {
         int term_no;
         ArrayList<ArrayList<String>> ids = new ArrayList<>();
         Map<String, Double> map = new HashMap<>();
+        ArrayList<Document> RF;
         
         //Kueri ke DB
         ArrayList<String> p_kueri = PT.prosesKueri(kueri);
         term_no = p_kueri.size();
+        RF = DB.getProbBIM(p_kueri);
         dfs = new int[term_no];
         for (int i=0;i<p_kueri.size();i++) {
             dfs[i] = DB.getDf(p_kueri.get(i));
             ids.add(DB.getIds(p_kueri.get(i)));
         }
         
-        //Menghitung pt
+        //Menghitung pt dan ut
         double[] pt = new double[term_no];
+        double[] ut = new double[term_no];
         int N = DB.getN();
         for (int i=0;i<term_no;i++) {
             //pt[i] = 0.5;
-            pt[i] = ((double)dfs[i]/N*2/3) + ((double)1/3);
+            if (RF == null) {
+                pt[i] = ((double)dfs[i]/N*2/3) + ((double)1/3);
+            } else {
+                pt[i] = (double)RF.get(i).get("pt");
+                ut[i] = (double)RF.get(i).get("ut");
+            }
         }
         
         //Menghitung nilai dokumen
@@ -85,7 +94,12 @@ public class SearchHadis {
             for (int j=0;j<ids.get(i).size();j++) {
                 String id = ids.get(i).get(j);
                 double a = Math.log10(pt[i]/(1.0-pt[i]));
-                double b = Math.log10(N/(double)dfs[i]);
+                double b;
+                if (RF == null) {
+                    b = Math.log10(N/(double)dfs[i]);
+                } else {
+                    b = Math.log10((1.0-ut[i])/ut[i]);
+                }
                 map.put(id, map.getOrDefault(id, 0.0)+a+b);
             }
         }
@@ -136,8 +150,16 @@ public class SearchHadis {
         SearchHadis SH = new SearchHadis();
         String kueri = "siksa kubur orang kencing";
         
-        //SH.searchBIM(kueri);
-        SH.searchOkapi(kueri);
+        SH.searchBIM(kueri);
+        //SH.searchOkapi(kueri);
+        
+        /*ArrayList<String> ar = new ArrayList<>();
+        ar.add("kencing");
+        ar.add("kubur");
+        ar.add("orang");
+        ar.add("siksa");
+        
+        System.out.println(new Database().getProbBIM(ar).get(0).get("ut"));*/
     }
     
 }
