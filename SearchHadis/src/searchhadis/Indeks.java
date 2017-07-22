@@ -1,8 +1,6 @@
 package searchhadis;
 
-import com.mongodb.client.MongoCollection;
 import java.util.ArrayList;
-import org.bson.Document;
 
 /**
  *
@@ -15,8 +13,6 @@ public class Indeks {
         Hadis H = new Hadis();
         Database DB = new Database();
         ProsesTeks PT = new ProsesTeks();
-        MongoCollection<Document> coll;
-        MongoCollection<Document> coll2;
         
         String teks;
         String indo;
@@ -24,8 +20,6 @@ public class Indeks {
         int jumlah;
         
         jumlah = H.getJumlahHadis(imam);
-        coll = DB.connect("indeks");
-        coll2 = DB.connect("doclength");
         for (int i=0;i<jumlah;i++) {
             System.out.println(i);
             
@@ -37,21 +31,21 @@ public class Indeks {
             
             //Insert term ke DB
             for (int j=0;j<output.size();j++) {
-                if (DB.find(coll, output.get(j))) {
+                if (DB.find(output.get(j))) {
                     //Update existing
-                    if (DB.findId(coll, output.get(j), no_hadis)) {
-                        DB.addId(coll, no_hadis, output.get(j));
+                    if (DB.findId(output.get(j), no_hadis)) {
+                        DB.addId(no_hadis, output.get(j));
                     } else {
-                        DB.update(coll, no_hadis, output.get(j));
+                        DB.update(no_hadis, output.get(j));
                     }
                 } else {
                     //Insert new
-                    DB.insert(coll, no_hadis, output.get(j));
+                    DB.insert(no_hadis, output.get(j));
                 }
             }
             
             //Insert document length
-            DB.insertDocLength(coll2, no_hadis, output.size());
+            DB.insertDocLength(no_hadis, output.size());
         }
     }
     

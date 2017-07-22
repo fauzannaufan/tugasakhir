@@ -1,11 +1,17 @@
 package searchhadis;
 
 import com.mongodb.MongoClient;
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
+import static com.mongodb.client.model.Accumulators.avg;
+import static com.mongodb.client.model.Aggregates.group;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import org.bson.Document;
 
 /**
@@ -13,16 +19,6 @@ import org.bson.Document;
  * @author M. Fauzan Naufan
  */
 public class Database {
-    
-    public boolean find(MongoCollection<Document> coll, String term) {
-        long L = coll.count(Document.parse("{\"nama\" : \""+term+"\"}"));
-        return L != 0;
-    }
-    
-    public boolean findId(MongoCollection<Document> coll, String term, String id) {
-        long L = coll.count(Document.parse("{\"nama\" : \""+term+"\", \"id\" : \""+id+"\"}"));
-        return L != 0;
-    }
     
     public MongoCollection<Document> connect(String nama) {
         
@@ -40,14 +36,28 @@ public class Database {
         return coll;
     }
     
-    public void insertDocLength(MongoCollection<Document> coll, String no_hadis, int length) {
+    public boolean find(String term) {
+        MongoCollection<Document> coll = connect("indeks");
+        long L = coll.count(Document.parse("{\"nama\" : \""+term+"\"}"));
+        return L != 0;
+    }
+    
+    public boolean findId(String term, String id) {
+        MongoCollection<Document> coll = connect("indeks");
+        long L = coll.count(Document.parse("{\"nama\" : \""+term+"\", \"id\" : \""+id+"\"}"));
+        return L != 0;
+    }
+    
+    public void insertDocLength(String no_hadis, int length) {
+        MongoCollection<Document> coll = connect("doclength");
         Document doc = new Document("id", no_hadis)
                 .append("length", length);
         
         coll.insertOne(doc);
     }
     
-    public void insert(MongoCollection<Document> coll, String no_hadis, String term) {
+    public void insert(String no_hadis, String term) {
+        MongoCollection<Document> coll = connect("indeks");
         Document doc = new Document("nama", term)
                 .append("df", 1)
                 .append("id", Arrays.asList(no_hadis));
@@ -55,7 +65,8 @@ public class Database {
         coll.insertOne(doc);
     }
     
-    public void update(MongoCollection<Document> coll, String no_hadis, String term) {
+    public void update(String no_hadis, String term) {
+        MongoCollection<Document> coll = connect("indeks");
         
         //Update document frequency
         Document doc = new Document().append("$inc",
@@ -66,7 +77,8 @@ public class Database {
         coll.updateOne(new Document().append("nama", term), doc);
     }
     
-    public void addId(MongoCollection<Document> coll, String no_hadis, String term) {
+    public void addId(String no_hadis, String term) {
+        MongoCollection<Document> coll = connect("indeks");
         
         //Update document frequency
         Document doc = new Document().append("$push",
@@ -75,7 +87,8 @@ public class Database {
         coll.updateOne(new Document().append("nama", term), doc);
     }
     
-    public int getDf(MongoCollection<Document> coll, String term) {
+    public int getDf(String term) {
+        MongoCollection<Document> coll = connect("indeks");
         Document df = coll.find(new Document("nama", term))
                 .projection(new Document("df", 1)
                 .append("_id", 0)).first();
@@ -83,12 +96,18 @@ public class Database {
         return Integer.parseInt(df.get("df").toString());
     }
     
-    public ArrayList<String> getIds(MongoCollection<Document> coll, String term) {
+    public ArrayList<String> getIds(String term) {
+        MongoCollection<Document> coll = connect("indeks");
         ArrayList<Document> arrays = coll.find(new Document("nama", term))
                 .projection(new Document("id", 1)
                 .append("_id", 0)).into(new ArrayList<Document>());
+        
         ArrayList<String> ids = (ArrayList<String>)arrays.get(0).get("id");
-        Collections.sort(ids);
+        HashSet<String> hs = new HashSet<>();
+        hs.addAll(ids);
+        ids.clear();
+        ids.addAll(hs);
+        
         return ids;
     }
     
@@ -96,5 +115,40 @@ public class Database {
         MongoCollection<Document> coll = connect("doclength");
         long L = coll.count();
         return Math.toIntExact(L);
+    }
+    
+    public ArrayList<String> getAllIds(String term) {
+        MongoCollection<Document> coll = connect("indeks");
+        ArrayList<Document> arrays = coll.find(new Document("nama", term))
+                .projection(new Document("id", 1)
+                .append("_id", 0)).into(new ArrayList<Document>());
+        
+        ArrayList<String> ids = (ArrayList<String>)arrays.get(0).get("id");
+        
+        return ids;
+    }
+    
+    public Map<String, Integer> getAllDocLength() {
+        MongoCollection<Document> coll = connect("doclength");
+        Map<String, Integer> map = new HashMap<>();
+        
+        FindIterable<Document> doc = coll.find(new Document())
+                .projection(new Document("_id", 0));
+        
+        MongoCursor<Document> cur = doc.iterator();
+        while(cur.hasNext()) {
+            Document d = cur.next();
+            map.put(d.get("id").toString(), Integer.parseInt(d.get("length").toString()));
+        }
+        
+        return map;
+    }
+    
+    public double getDocAvgLength() {
+        MongoCollection<Document> coll = connect("doclength");
+        
+        Document avg = coll.aggregate(Arrays.asList(group("null", avg("avgLength", "$length")))).first();
+        
+        return Double.parseDouble(avg.get("avgLength").toString());
     }
 }

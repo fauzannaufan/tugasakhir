@@ -4,6 +4,7 @@ import IndonesianNLP.IndonesianSentenceFormalization;
 import IndonesianNLP.IndonesianSentenceTokenizer;
 import IndonesianNLP.IndonesianStemmer;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 
 /**
@@ -91,6 +92,24 @@ public class ProsesTeks {
         
         ArrayList<String> arr = tokenisasi(text);
         arr = stemming(arr);
+        
+        return arr;
+    }
+    
+    public ArrayList<String> prosesKueri(String text) {
+        ArrayList<String> arr = prosesTeks(text);
+        
+        HashSet<String> hs = new HashSet<>();
+        hs.addAll(arr);
+        arr.clear();
+        arr.addAll(hs);
+        
+        for (int i=0;i<arr.size();i++) {
+            String s = arr.get(i);
+            if(!new Database().find(s)) {
+                arr.remove(s);
+            }
+        }
         
         return arr;
     }
