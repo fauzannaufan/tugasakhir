@@ -33,13 +33,17 @@ public class Indeks {
             teks = H.getTeksHadis(imam, i);
             no_hadis = teks.substring(0,teks.indexOf("<"));
             indo = teks.substring(teks.indexOf("<")+1);
-            ArrayList<String> output = PT.preproses(indo);
+            ArrayList<String> output = PT.prosesTeks(indo);
             
             //Insert term ke DB
             for (int j=0;j<output.size();j++) {
                 if (DB.find(coll, output.get(j))) {
                     //Update existing
-                    DB.update(coll, no_hadis, output.get(j));
+                    if (DB.findId(coll, output.get(j), no_hadis)) {
+                        DB.addId(coll, no_hadis, output.get(j));
+                    } else {
+                        DB.update(coll, no_hadis, output.get(j));
+                    }
                 } else {
                     //Insert new
                     DB.insert(coll, no_hadis, output.get(j));

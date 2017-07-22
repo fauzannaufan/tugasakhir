@@ -12,7 +12,7 @@ import java.util.ArrayList;
  */
 public class ProsesTeks {
     
-    public ArrayList<String> tokenisasi (String text) {
+    public String preproses (String text) {
         IndonesianSentenceTokenizer tokenizer = new IndonesianSentenceTokenizer();
         IndonesianStemmer stemmer = new IndonesianStemmer();
         
@@ -56,67 +56,58 @@ public class ProsesTeks {
             }
         }
         
-        return tokenizer.tokenizeSentence(text);
+        return text;
     }
     
-    public ArrayList<String> deleteStopword(ArrayList<String> tokens) {
+    public String deleteStopword(String text) {
         IndonesianSentenceFormalization formalizer = new IndonesianSentenceFormalization();
         formalizer.initStopword();
         
-        for (int i=0;i<tokens.size();i++) {
-            String s = formalizer.deleteStopword(tokens.get(i).toLowerCase());
-            if (s.equals("")) {
-                tokens.remove(i);
-                i--;
-            }
-        }
-        
-        return tokens;
-    }
-    
-    public ArrayList<String> normalisasi(ArrayList<String> tokens) {
-        IndonesianSentenceFormalization formalizer = new IndonesianSentenceFormalization();
-        
-        for (int i=0;i<tokens.size();i++) {
-            String formalized = formalizer.formalizeWord(tokens.get(i).toLowerCase());
-            tokens.set(i, formalized);
-        }
-        
-        return tokens;
+        return formalizer.deleteStopword(text.toLowerCase());
     }
     
     public ArrayList<String> stemming(ArrayList<String> tokens) {
+        IndonesianSentenceFormalization formalizer = new IndonesianSentenceFormalization();
         IndonesianStemmer stemmer = new IndonesianStemmer();
-        
+
         for (int i=0;i<tokens.size();i++) {
-            String stemmed = stemmer.stem(tokens.get(i));
-            tokens.set(i, stemmed);
+            String s = formalizer.formalizeWord(tokens.get(i).toLowerCase());
+            s = stemmer.stem(s);
+            s = formalizer.formalizeWord(s);
+            tokens.set(i, s);
         }
         
         return tokens;
     }
     
-    public ArrayList<String> preproses(String text) {
+    public ArrayList<String> tokenisasi(String text) {
+        IndonesianSentenceTokenizer tokenizer = new IndonesianSentenceTokenizer();
+        return tokenizer.tokenizeSentence(text);
+    }
+    
+    public ArrayList<String> prosesTeks(String text) {
+        text = preproses(text);
+        text = deleteStopword(text);
+        
         ArrayList<String> arr = tokenisasi(text);
-        arr = deleteStopword(arr);
-        arr = normalisasi(arr);
         arr = stemming(arr);
         
         return arr;
     }
     
     //Hanya untuk testing modul
-    /*public static void main (String args[]) {
+    public static void main (String args[]) {
         ProsesTeks PT = new ProsesTeks();
         Hadis H = new Hadis();
         
-        for (int i=0;i<1;i++) {
+        for (int i=0;i<10;i++) {
             String text = H.getTeksHadis("bukhari", i);
+            text = text.substring(text.indexOf("<")+1);
             System.out.println(text);
-            ArrayList<String> arr = PT.preproses(text);
+            ArrayList<String> arr = PT.prosesTeks(text);
             System.out.println(arr);
         }
         
-    }*/
+    }
     
 }

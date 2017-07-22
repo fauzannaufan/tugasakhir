@@ -41,7 +41,7 @@ public class SearchHadis {
         
         //Kueri ke DB
         coll = DB.connect(imam);
-        ArrayList<String> p_kueri = PT.preproses(kueri);
+        ArrayList<String> p_kueri = PT.prosesTeks(kueri);
         term_no = p_kueri.size();
         dfs = new int[term_no];
         for (int i=0;i<p_kueri.size();i++) {

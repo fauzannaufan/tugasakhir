@@ -19,6 +19,11 @@ public class Database {
         return L != 0;
     }
     
+    public boolean findId(MongoCollection<Document> coll, String term, String id) {
+        long L = coll.count(Document.parse("{\"nama\" : \""+term+"\", \"id\" : \""+id+"\"}"));
+        return L != 0;
+    }
+    
     public MongoCollection<Document> connect(String nama) {
         
         MongoCollection<Document> coll = null;
@@ -57,6 +62,15 @@ public class Database {
                 new Document().append("df", 1))
                 .append("$push",
                         new Document().append("id", no_hadis));
+        
+        coll.updateOne(new Document().append("nama", term), doc);
+    }
+    
+    public void addId(MongoCollection<Document> coll, String no_hadis, String term) {
+        
+        //Update document frequency
+        Document doc = new Document().append("$push",
+                new Document().append("id", no_hadis));
         
         coll.updateOne(new Document().append("nama", term), doc);
     }
