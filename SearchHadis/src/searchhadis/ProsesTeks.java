@@ -96,7 +96,7 @@ public class ProsesTeks {
     }
     
     //Hanya untuk testing modul
-    public static void main (String args[]) {
+    /*public static void main (String args[]) {
         ProsesTeks PT = new ProsesTeks();
         Hadis H = new Hadis();
         
@@ -108,6 +108,6 @@ public class ProsesTeks {
             System.out.println(arr);
         }
         
-    }
+    }*/
     
 }

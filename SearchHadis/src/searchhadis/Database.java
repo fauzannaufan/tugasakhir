@@ -83,12 +83,18 @@ public class Database {
         return Integer.parseInt(df.get("df").toString());
     }
     
-    public ArrayList<Integer> getIds(MongoCollection<Document> coll, String term) {
+    public ArrayList<String> getIds(MongoCollection<Document> coll, String term) {
         ArrayList<Document> arrays = coll.find(new Document("nama", term))
                 .projection(new Document("id", 1)
                 .append("_id", 0)).into(new ArrayList<Document>());
-        ArrayList<Integer> ids = (ArrayList<Integer>)arrays.get(0).get("id");
+        ArrayList<String> ids = (ArrayList<String>)arrays.get(0).get("id");
         Collections.sort(ids);
         return ids;
+    }
+    
+    public int getN() {
+        MongoCollection<Document> coll = connect("doclength");
+        long L = coll.count();
+        return Math.toIntExact(L);
     }
 }
