@@ -54,6 +54,12 @@ public class Database {
         return L != 0;
     }
     
+    public boolean findOkapi(ArrayList<String> terms) {
+        MongoCollection<Document> coll = connect("okapi");
+        long L = coll.count(new Document("term", terms));
+        return L != 0;
+    }
+    
     public void insertDocLength(String no_hadis, int length) {
         MongoCollection<Document> coll = connect("doclength");
         Document doc = new Document("id", no_hadis)
@@ -189,5 +195,38 @@ public class Database {
                 .append("pt", pt);
         
         coll.replaceOne(new Document("term", terms), doc);
+    }
+    
+    public void insertOkapi(ArrayList<String> terms, ArrayList<Double> rf) {
+        MongoCollection<Document> coll = connect("okapi");
+        Document doc = new Document("term", terms)
+                .append("rf", rf);
+        
+        coll.insertOne(doc);
+    }
+    
+    public void updateOkapi(ArrayList<String> terms, ArrayList<Double> rf) {
+        MongoCollection<Document> coll = connect("okapi");
+        
+        //Update document frequency
+        Document doc = new Document("term", terms)
+                .append("rf", rf);
+        
+        coll.replaceOne(new Document("term", terms), doc);
+    }
+    
+    public ArrayList<Double> getRfOkapi(ArrayList<String> terms) {
+        MongoCollection<Document> coll = connect("okapi");
+        
+        ArrayList<Document> arr = coll.find(new Document("term", terms))
+                .projection(new Document("_id", 0)
+                .append("rf", 1)).into(new ArrayList<Document>());
+        
+        if (arr.size() > 0) {
+            ArrayList<Double> rf = (ArrayList<Double>)arr.get(0).get("rf");
+            return rf;
+        } else {
+            return null;
+        }
     }
 }

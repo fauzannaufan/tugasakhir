@@ -20,40 +20,6 @@ public class SearchHadis {
         return tftd;
     }
     
-    public void calculateProbBIM(String kueri, ArrayList<String> VR, ArrayList<Double> pt) {
-        ProsesTeks PT = new ProsesTeks();
-        Database DB = new Database();
-        
-        ArrayList<String> p_kueri = PT.prosesKueri(kueri);
-        ArrayList<ArrayList<String>> ids = new ArrayList<>();
-        int VRt[] = new int[p_kueri.size()];
-        ArrayList<Double> newpt = new ArrayList<>();
-        
-        p_kueri.stream().forEach((s) -> {
-            ids.add(DB.getIds(s));
-        });
-        
-        for (int i=0;i<VR.size();i++) {
-            String id = VR.get(i);
-            for (int j=0;j<ids.size();j++) {
-                if (ids.get(j).contains(id)) {
-                    VRt[j] += 1;
-                }
-            }
-        }
-        
-        for (int i=0;i<p_kueri.size();i++) {
-            int kappa = 5;
-            newpt.add((VRt[i]+kappa*pt.get(i))/(VR.size()+kappa));
-        }
-        
-        if (DB.findBIM(p_kueri)) {
-            DB.updateBIM(p_kueri, newpt);
-        } else {
-            DB.insertBIM(p_kueri, newpt);
-        }
-    }
-    
     public double countOkapi(String id, String term, int N, double Lave, int df, int tftd, int Ld) {
         double k1 = 1.5;
         double b = 0.75;
@@ -76,8 +42,8 @@ public class SearchHadis {
         
         //Cetak hasil pencarian
         list2 = new ArrayList<>(result.entrySet());
-        if (list2.size()>10) {
-            list2 = list2.subList(0, 9);
+        if (list2.size() >= 10) {
+            list2 = list2.subList(0, 10);
         }
         for (Map.Entry entry : list2) {
             System.out.print(entry.getKey()+" : ");
@@ -146,9 +112,11 @@ public class SearchHadis {
         double Lave = DB.getDocAvgLength();
         ArrayList<String> allIds;
         Map<String, Integer> allDocLength = DB.getAllDocLength();
+        ArrayList<Double> RF;
         
         //Kueri ke DB
         ArrayList<String> p_kueri = PT.prosesKueri(kueri);
+        RF = DB.getRfOkapi(p_kueri);
         for (int i=0;i<p_kueri.size();i++) {
             ids.add(DB.getIds(p_kueri.get(i)));
         }
@@ -161,7 +129,12 @@ public class SearchHadis {
                 String id = ids.get(i).get(j);
                 int tftd = getTftd(allIds,id);
                 int Ld = allDocLength.get(id);
-                double a = Math.log10(countOkapi(id,p_kueri.get(i),N,Lave,df,tftd,Ld));
+                double a;
+                if (RF == null) {
+                    a = Math.log10(countOkapi(id,p_kueri.get(i),N,Lave,df,tftd,Ld));
+                } else {
+                    a = Math.log10(RF.get(i) * countOkapi(id,p_kueri.get(i),N,Lave,df,tftd,Ld));
+                }
                 map.put(id, map.getOrDefault(id, 0.0)+a);
             }
         }
@@ -176,28 +149,8 @@ public class SearchHadis {
         SearchHadis SH = new SearchHadis();
         String kueri = "shalat wajib berjamaah";
         
-        SH.searchBIM(kueri);
-        //SH.searchOkapi(kueri);
-        
-        /*ArrayList<String> ar = new ArrayList<>();
-        ar.add("kencing");
-        ar.add("kubur");
-        ar.add("orang");
-        ar.add("siksa");*/
-        
-        ArrayList<String> ar2 = new ArrayList<>();
-        ar2.add("B872");
-        ar2.add("B5648");
-        ar2.add("B3424");
-        //ar2.add("B1873");
-        ar2.add("B1137");
-        
-        ArrayList<Double> pt = new ArrayList<>();
-        pt.add(0.86111111111112);
-        pt.add(0.86111111111112);
-        pt.add(0.69444444444444);
-        
-        SH.calculateProbBIM(kueri, ar2, pt);
+        //SH.searchBIM(kueri);
+        SH.searchOkapi(kueri);
     }
     
 }
