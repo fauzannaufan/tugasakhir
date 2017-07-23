@@ -16,3 +16,5 @@
 *.ear
 *.sar
 *.class
+/SearchHadis Service/nbproject/private/
+/SearchHadis Service/build/
