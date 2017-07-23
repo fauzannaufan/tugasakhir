@@ -1,4 +1,4 @@
-package searchhadis;
+package backend;
 
 import IndonesianNLP.IndonesianSentenceFormalization;
 import IndonesianNLP.IndonesianSentenceTokenizer;
