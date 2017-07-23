@@ -7,7 +7,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import org.bson.Document;
 
 /**
  *
@@ -19,6 +18,40 @@ public class SearchHadis {
         int tftd = 0;
         tftd = allIds.stream().filter((s) -> (s.equals(id))).map((_item) -> 1).reduce(tftd, Integer::sum);
         return tftd;
+    }
+    
+    public void calculateProbBIM(String kueri, ArrayList<String> VR, ArrayList<Double> pt) {
+        ProsesTeks PT = new ProsesTeks();
+        Database DB = new Database();
+        
+        ArrayList<String> p_kueri = PT.prosesKueri(kueri);
+        ArrayList<ArrayList<String>> ids = new ArrayList<>();
+        int VRt[] = new int[p_kueri.size()];
+        ArrayList<Double> newpt = new ArrayList<>();
+        
+        p_kueri.stream().forEach((s) -> {
+            ids.add(DB.getIds(s));
+        });
+        
+        for (int i=0;i<VR.size();i++) {
+            String id = VR.get(i);
+            for (int j=0;j<ids.size();j++) {
+                if (ids.get(j).contains(id)) {
+                    VRt[j] += 1;
+                }
+            }
+        }
+        
+        for (int i=0;i<p_kueri.size();i++) {
+            int kappa = 5;
+            newpt.add((VRt[i]+kappa*pt.get(i))/(VR.size()+kappa));
+        }
+        
+        if (DB.findBIM(p_kueri)) {
+            DB.updateBIM(p_kueri, newpt);
+        } else {
+            DB.insertBIM(p_kueri, newpt);
+        }
     }
     
     public double countOkapi(String id, String term, int N, double Lave, int df, int tftd, int Ld) {
@@ -63,7 +96,7 @@ public class SearchHadis {
         int term_no;
         ArrayList<ArrayList<String>> ids = new ArrayList<>();
         Map<String, Double> map = new HashMap<>();
-        ArrayList<Document> RF;
+        ArrayList<Double> RF;
         
         //Kueri ke DB
         ArrayList<String> p_kueri = PT.prosesKueri(kueri);
@@ -77,15 +110,13 @@ public class SearchHadis {
         
         //Menghitung pt dan ut
         double[] pt = new double[term_no];
-        double[] ut = new double[term_no];
         int N = DB.getN();
         for (int i=0;i<term_no;i++) {
             //pt[i] = 0.5;
             if (RF == null) {
                 pt[i] = ((double)dfs[i]/N*2/3) + ((double)1/3);
             } else {
-                pt[i] = (double)RF.get(i).get("pt");
-                ut[i] = (double)RF.get(i).get("ut");
+                pt[i] = (double)RF.get(i);
             }
         }
         
@@ -94,12 +125,7 @@ public class SearchHadis {
             for (int j=0;j<ids.get(i).size();j++) {
                 String id = ids.get(i).get(j);
                 double a = Math.log10(pt[i]/(1.0-pt[i]));
-                double b;
-                if (RF == null) {
-                    b = Math.log10(N/(double)dfs[i]);
-                } else {
-                    b = Math.log10((1.0-ut[i])/ut[i]);
-                }
+                double b = Math.log10(N/(double)dfs[i]);
                 map.put(id, map.getOrDefault(id, 0.0)+a+b);
             }
         }
@@ -148,7 +174,7 @@ public class SearchHadis {
      */
     public static void main(String[] args) {
         SearchHadis SH = new SearchHadis();
-        String kueri = "siksa kubur orang kencing";
+        String kueri = "shalat wajib berjamaah";
         
         SH.searchBIM(kueri);
         //SH.searchOkapi(kueri);
@@ -157,9 +183,21 @@ public class SearchHadis {
         ar.add("kencing");
         ar.add("kubur");
         ar.add("orang");
-        ar.add("siksa");
+        ar.add("siksa");*/
         
-        System.out.println(new Database().getProbBIM(ar).get(0).get("ut"));*/
+        ArrayList<String> ar2 = new ArrayList<>();
+        ar2.add("B872");
+        ar2.add("B5648");
+        ar2.add("B3424");
+        //ar2.add("B1873");
+        ar2.add("B1137");
+        
+        ArrayList<Double> pt = new ArrayList<>();
+        pt.add(0.86111111111112);
+        pt.add(0.86111111111112);
+        pt.add(0.69444444444444);
+        
+        SH.calculateProbBIM(kueri, ar2, pt);
     }
     
 }

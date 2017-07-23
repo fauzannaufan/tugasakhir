@@ -38,13 +38,19 @@ public class Database {
     
     public boolean find(String term) {
         MongoCollection<Document> coll = connect("indeks");
-        long L = coll.count(Document.parse("{\"nama\" : \""+term+"\"}"));
+        long L = coll.count(new Document("nama", term));
         return L != 0;
     }
     
     public boolean findId(String term, String id) {
         MongoCollection<Document> coll = connect("indeks");
         long L = coll.count(Document.parse("{\"nama\" : \""+term+"\", \"id\" : \""+id+"\"}"));
+        return L != 0;
+    }
+    
+    public boolean findBIM(ArrayList<String> terms) {
+        MongoCollection<Document> coll = connect("bim");
+        long L = coll.count(new Document("term", terms));
         return L != 0;
     }
     
@@ -152,18 +158,36 @@ public class Database {
         return Double.parseDouble(avg.get("avgLength").toString());
     }
     
-    public ArrayList<Document> getProbBIM(ArrayList<String> terms) {
+    public ArrayList<Double> getProbBIM(ArrayList<String> terms) {
         MongoCollection<Document> coll = connect("bim");
         
         ArrayList<Document> arr = coll.find(new Document("term", terms))
                 .projection(new Document("_id", 0)
-                .append("prob", 1)).into(new ArrayList<Document>());
+                .append("pt", 1)).into(new ArrayList<Document>());
         
         if (arr.size() > 0) {
-            ArrayList<Document> doc = (ArrayList<Document>)arr.get(0).get("prob");
-            return doc;
+            ArrayList<Double> pt = (ArrayList<Double>)arr.get(0).get("pt");
+            return pt;
         } else {
             return null;
         }
+    }
+    
+    public void insertBIM(ArrayList<String> terms, ArrayList<Double> pt) {
+        MongoCollection<Document> coll = connect("bim");
+        Document doc = new Document("term", terms)
+                .append("pt", pt);
+        
+        coll.insertOne(doc);
+    }
+    
+    public void updateBIM(ArrayList<String> terms, ArrayList<Double> pt) {
+        MongoCollection<Document> coll = connect("bim");
+        
+        //Update document frequency
+        Document doc = new Document("term", terms)
+                .append("pt", pt);
+        
+        coll.replaceOne(new Document("term", terms), doc);
     }
 }
