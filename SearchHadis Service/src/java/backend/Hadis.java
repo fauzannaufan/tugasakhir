@@ -40,6 +40,41 @@ public class Hadis {
         return no_hadis+nomor;
     }
     
+    public String getIdHadis(String id) {
+        int i = 0;
+        while (i < id.length() && !Character.isDigit(id.charAt(i))) i++;
+        return id.substring(i);
+    }
+    
+    public String getImam(String id) {
+        int i = 0;
+        while (i < id.length() && !Character.isDigit(id.charAt(i))) i++;
+        
+        String s = id.substring(0,i);
+        String imam = "";
+        switch(s) {
+            case "AB" :
+                imam = "abudaud"; break;
+            case "AH" :
+                imam = "ahmad"; break;
+            case "B" :
+                imam = "bukhari"; break;
+            case "D" :
+                imam = "darimi"; break;
+            case "I" :
+                imam = "ibnumajah"; break;
+            case "MA" :
+                imam = "malik"; break;
+            case "MU" :
+                imam = "muslim"; break;
+            case "N" :
+                imam = "nasai"; break;
+            case "T" :
+                imam = "tirmidzi"; break;
+        }
+        return imam;
+    }
+    
     public int getJumlahHadis(String imam) {
         int size = -1;
         
@@ -84,7 +119,8 @@ public class Hadis {
     /*public static void main (String args[]) {
         //for (int i=0;i<20;i++) {
             String s = new Hadis().setNomorHadis("bukhari", "501");
-            System.out.println(s);
+            //System.out.println(new Hadis().getImam(s)+" "+new Hadis().getIdHadis(s));
+            System.out.println(new Database().getHadis(s));
         //}
     }*/
     

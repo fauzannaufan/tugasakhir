@@ -4,9 +4,17 @@
         <servlet-name>SearchBIM</servlet-name>
         <servlet-class>search.SearchBIM</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>SearchOkapi</servlet-name>
+        <servlet-class>search.SearchOkapi</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>SearchBIM</servlet-name>
         <url-pattern>/SearchBIM</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>SearchOkapi</servlet-name>
+        <url-pattern>/SearchOkapi</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>

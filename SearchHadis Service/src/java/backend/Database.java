@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import org.bson.Document;
+import org.json.simple.JSONObject;
 
 /**
  *
@@ -228,5 +229,24 @@ public class Database {
         } else {
             return null;
         }
+    }
+    
+    public ArrayList<String> getHadis(String id) {
+        MongoCollection<Document> coll = connect("coba");
+        Hadis H = new Hadis();
+        
+        Document doc = coll.find(new Document("imam", H.getImam(id))
+                .append("haditsId", H.getIdHadis(id)))
+                .projection(new Document("_id", 0)
+                        .append("indo", 1)
+                        .append("imam", 1)
+                        .append("haditsId",1)).first();
+        
+        ArrayList<String> arr = new ArrayList<>();
+        arr.add(doc.get("imam").toString());
+        arr.add(doc.get("haditsId").toString());
+        arr.add(doc.get("indo").toString());
+        
+        return arr;
     }
 }

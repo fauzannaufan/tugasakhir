@@ -7,6 +7,8 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
 /**
  *
@@ -29,10 +31,13 @@ public class SearchHadis {
         return hasil;
     }
     
-    public void sortResult(Map map) {
+    public JSONObject sortResulttoJSON(Map map) {
         Map<String,Double> result = new LinkedHashMap<>();
         List<Map.Entry<String,Double>> list;
         List<Map.Entry<String,Double>> list2;
+        JSONObject obj = new JSONObject();
+        JSONArray arr = new JSONArray();
+        Database DB = new Database();
         
         list = new LinkedList<>(map.entrySet());
         Collections.sort(list, (Map.Entry<String,Double> o1, Map.Entry<String,Double> o2) -> (o2.getValue()).compareTo(o1.getValue()));
@@ -45,13 +50,22 @@ public class SearchHadis {
         if (list2.size() >= 10) {
             list2 = list2.subList(0, 10);
         }
+        
         for (Map.Entry entry : list2) {
-            System.out.print(entry.getKey()+" : ");
-            System.out.println(entry.getValue());
+            JSONObject obj2 = new JSONObject();
+            ArrayList<String> arr2 = DB.getHadis(entry.getKey().toString());
+            obj2.put("key", entry.getKey());
+            obj2.put("imam", arr2.get(0));
+            obj2.put("haditsId", arr2.get(1));
+            obj2.put("indo", arr2.get(2));
+            arr.add(obj2);
         }
+        
+        obj.put("hasil", arr);
+        return obj;
     }
     
-    public void searchBIM(String kueri) {
+    public JSONObject searchBIM(String kueri) {
         //Inisialisasi kelas
         ProsesTeks PT = new ProsesTeks();
         Database DB = new Database();
@@ -96,10 +110,10 @@ public class SearchHadis {
             }
         }
         
-        sortResult(map);
+        return sortResulttoJSON(map);
     }
     
-    public void searchOkapi(String kueri) {
+    public JSONObject searchOkapi(String kueri) {
         //Inisialisasi kelas
         ProsesTeks PT = new ProsesTeks();
         Database DB = new Database();
@@ -116,6 +130,7 @@ public class SearchHadis {
         
         //Kueri ke DB
         ArrayList<String> p_kueri = PT.prosesKueri(kueri);
+        System.out.println(p_kueri);
         RF = DB.getRfOkapi(p_kueri);
         for (int i=0;i<p_kueri.size();i++) {
             ids.add(DB.getIds(p_kueri.get(i)));
@@ -139,18 +154,7 @@ public class SearchHadis {
             }
         }
         
-        sortResult(map);
-    }
-
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) {
-        SearchHadis SH = new SearchHadis();
-        String kueri = "shalat wajib berjamaah";
-        
-        //SH.searchBIM(kueri);
-        SH.searchOkapi(kueri);
+        return sortResulttoJSON(map);
     }
     
 }

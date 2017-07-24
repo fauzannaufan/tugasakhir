@@ -7,13 +7,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 
-
 /**
  *
  * @author M. Fauzan Naufan
  */
 public class ProsesTeks {
-    
     public String preproses (String text) {
         IndonesianStemmer stemmer = new IndonesianStemmer();
         
@@ -104,30 +102,19 @@ public class ProsesTeks {
         arr.clear();
         arr.addAll(hs);
         
-        for (int i=0;i<arr.size();i++) {
+        /*for (int i=0;i<arr.size();i++) {
             String s = arr.get(i);
             if(!new Database().find(s)) {
                 arr.remove(s);
             }
-        }
+        }*/
         
         Collections.sort(arr);
         return arr;
     }
     
-    //Hanya untuk testing modul
-    /*public static void main (String args[]) {
-        ProsesTeks PT = new ProsesTeks();
-        Hadis H = new Hadis();
-        
-        for (int i=0;i<10;i++) {
-            String text = H.getTeksHadis("bukhari", i);
-            text = text.substring(text.indexOf("<")+1);
-            System.out.println(text);
-            ArrayList<String> arr = PT.prosesTeks(text);
-            System.out.println(arr);
-        }
-        
-    }*/
-    
+    public static void main (String args[]) {
+        IndonesianSentenceFormalization formalizer = new IndonesianSentenceFormalization();
+        System.out.println(formalizer.listUnformal);
+    }
 }

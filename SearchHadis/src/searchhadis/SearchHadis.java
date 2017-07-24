@@ -147,10 +147,10 @@ public class SearchHadis {
      */
     public static void main(String[] args) {
         SearchHadis SH = new SearchHadis();
-        String kueri = "shalat wajib berjamaah";
+        String kueri = "dluha";
         
         //SH.searchBIM(kueri);
-        SH.searchOkapi(kueri);
+        //SH.searchOkapi(kueri);
     }
     
 }
