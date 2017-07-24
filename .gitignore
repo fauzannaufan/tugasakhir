@@ -18,3 +18,7 @@
 *.class
 /SearchHadis Service/nbproject/private/
 /SearchHadis Service/build/
+/SearchHadis Client/nbproject/private/
+/SearchHadis Client/build/
+/SearchHadis Service/dist/
+/SearchHadis Client/dist/
