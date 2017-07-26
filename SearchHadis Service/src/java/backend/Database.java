@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import org.bson.Document;
-import org.json.simple.JSONObject;
 
 /**
  *
@@ -248,5 +247,78 @@ public class Database {
         arr.add(doc.get("indo").toString());
         
         return arr;
+    }
+    
+    
+    public void addRelevantDocs(ArrayList<String> terms, ArrayList<String> ids, ArrayList<Double> pt) {
+        MongoCollection<Document> coll = connect("relevance");
+        
+        Document doc;
+        if (pt.isEmpty()) {
+            doc = new Document("term", terms).append("VNR", ids);
+        } else {
+            doc = new Document("term", terms).append("VNR", ids).append("pt", pt);
+        }
+        
+        long L = coll.count(new Document("term", terms));
+        if (L == 0) {
+            coll.insertOne(doc);
+        } else {
+            coll.replaceOne(new Document("term", terms), doc);
+        }
+    }
+    
+    public void setRelevant(ArrayList<String> terms, String id) {
+        MongoCollection<Document> coll = connect("relevance");
+        
+        Document doc = new Document("$push", new Document("VR", id));
+        coll.updateOne(new Document().append("term", terms), doc);
+        
+        doc = new Document("$pull", new Document("VNR", id));
+        coll.updateOne(new Document().append("term", terms), doc);
+        
+    }
+    
+    public ArrayList<String> getVR(ArrayList<String> terms) {
+        MongoCollection<Document> coll = connect("relevance");
+        ArrayList<Document> arrays = coll.find(new Document("term", terms))
+                .projection(new Document("VR", 1)
+                .append("_id", 0)).into(new ArrayList<Document>());
+        
+        if (arrays.size() > 0) {
+            ArrayList<String> ids = (ArrayList<String>)arrays.get(0).get("VR");
+            return ids;
+        } else {
+            return null;
+        }
+    }
+    
+    public ArrayList<String> getVNR(ArrayList<String> terms) {
+        MongoCollection<Document> coll = connect("relevance");
+        ArrayList<Document> arrays = coll.find(new Document("term", terms))
+                .projection(new Document("VNR", 1)
+                .append("_id", 0)).into(new ArrayList<Document>());
+        
+        if (arrays.size() > 0) {
+            ArrayList<String> ids = (ArrayList<String>)arrays.get(0).get("VNR");
+            return ids;
+        } else {
+            return null;
+        }
+    }
+    
+    public ArrayList<Double> getpt(ArrayList<String> terms) {
+        MongoCollection<Document> coll = connect("relevance");
+        
+        ArrayList<Document> arr = coll.find(new Document("term", terms))
+                .projection(new Document("_id", 0)
+                .append("pt", 1)).into(new ArrayList<Document>());
+        
+        if (arr.size() > 0) {
+            ArrayList<Double> pt = (ArrayList<Double>)arr.get(0).get("pt");
+            return pt;
+        } else {
+            return null;
+        }
     }
 }

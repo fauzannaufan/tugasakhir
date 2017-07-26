@@ -8,6 +8,18 @@
         <servlet-name>SearchOkapi</servlet-name>
         <servlet-class>search.SearchOkapi</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>addRelevantDocs</servlet-name>
+        <servlet-class>rf.addRelevantDocs</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>setRelevant</servlet-name>
+        <servlet-class>rf.setRelevant</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>calculateRf</servlet-name>
+        <servlet-class>rf.calculateRf</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>SearchBIM</servlet-name>
         <url-pattern>/SearchBIM</url-pattern>
@@ -15,6 +27,18 @@
     <servlet-mapping>
         <servlet-name>SearchOkapi</servlet-name>
         <url-pattern>/SearchOkapi</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>addRelevantDocs</servlet-name>
+        <url-pattern>/addRelevantDocs</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>setRelevant</servlet-name>
+        <url-pattern>/setRelevant</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>calculateRf</servlet-name>
+        <url-pattern>/calculateRf</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>

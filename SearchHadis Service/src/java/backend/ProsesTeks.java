@@ -102,19 +102,14 @@ public class ProsesTeks {
         arr.clear();
         arr.addAll(hs);
         
-        /*for (int i=0;i<arr.size();i++) {
+        for (int i=0;i<arr.size();i++) {
             String s = arr.get(i);
             if(!new Database().find(s)) {
                 arr.remove(s);
             }
-        }*/
+        }
         
         Collections.sort(arr);
         return arr;
-    }
-    
-    public static void main (String args[]) {
-        IndonesianSentenceFormalization formalizer = new IndonesianSentenceFormalization();
-        System.out.println(formalizer.listUnformal);
     }
 }

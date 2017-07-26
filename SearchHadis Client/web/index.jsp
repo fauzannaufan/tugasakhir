@@ -17,8 +17,13 @@
 
         <div class="main">
             <form action="Search" method="post">
-                <input type="hidden" name="method" value="bim">
                 <input id="searchbar" class="text" name="kueri" type="text"><br>
+                <div>
+                    Skema pembobotan :
+                    <input type="radio" name="skema" value="bim" required> BIM
+                    <input type="radio" name="skema" value="okapi"> Okapi
+                </div>
+                <br>
                 <div class="search">
                     <input id="searchbutton" type="submit" value="Cari">
                 </div>

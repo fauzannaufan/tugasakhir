@@ -1,6 +1,7 @@
 package backend;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -31,7 +32,7 @@ public class SearchHadis {
         return hasil;
     }
     
-    public JSONObject sortResulttoJSON(Map map) {
+    public JSONObject sortResulttoJSON(Map map, double[] pt) {
         Map<String,Double> result = new LinkedHashMap<>();
         List<Map.Entry<String,Double>> list;
         List<Map.Entry<String,Double>> list2;
@@ -62,6 +63,15 @@ public class SearchHadis {
         }
         
         obj.put("hasil", arr);
+        if (pt != null) {
+            JSONArray arr3 = new JSONArray();
+            for (double d : pt) {
+                arr3.add(d);
+            }
+            obj.put("pt", arr3);
+        } else {
+            obj.put("pt", new ArrayList<>());
+        }
         return obj;
     }
     
@@ -110,7 +120,7 @@ public class SearchHadis {
             }
         }
         
-        return sortResulttoJSON(map);
+        return sortResulttoJSON(map, pt);
     }
     
     public JSONObject searchOkapi(String kueri) {
@@ -154,7 +164,7 @@ public class SearchHadis {
             }
         }
         
-        return sortResulttoJSON(map);
+        return sortResulttoJSON(map, null);
     }
     
 }
