@@ -164,16 +164,16 @@ public class Database {
         return Double.parseDouble(avg.get("avgLength").toString());
     }
     
-    public ArrayList<Double> getProbBIM(ArrayList<String> terms) {
+    public Document getProbBIM(ArrayList<String> terms) {
         MongoCollection<Document> coll = connect("bim");
         
         ArrayList<Document> arr = coll.find(new Document("term", terms))
                 .projection(new Document("_id", 0)
-                .append("pt", 1)).into(new ArrayList<Document>());
+                .append("pt", 1).append("ut", 1)).into(new ArrayList<Document>());
         
         if (arr.size() > 0) {
-            ArrayList<Double> pt = (ArrayList<Double>)arr.get(0).get("pt");
-            return pt;
+            Document doc = arr.get(0);
+            return doc;
         } else {
             return null;
         }

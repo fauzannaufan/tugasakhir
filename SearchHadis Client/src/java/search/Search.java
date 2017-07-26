@@ -26,13 +26,14 @@ import org.json.simple.parser.ParseException;
  */
 public class Search extends HttpServlet {
 
-    private void hitungRF(String kueri) {
+    private void hitungRF(String skema, String kueri) {
         //Formulasi Relevance Feedback
         Form form = new Form();
         Client client = ClientBuilder.newClient();
         String url = "http://localhost:8080/SearchHadis_Service/calculateRf";
 
         form.param("kueri", kueri);
+        form.param("skema", skema);
         client.target(url).request(MediaType.TEXT_HTML)
                 .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED), String.class);
     }
@@ -63,8 +64,9 @@ public class Search extends HttpServlet {
         return obj;
     }
     
-    private void postHasiltoDB(String kueri, ArrayList<String> hasil, Object pt, Object ut) {
+    private void postHasiltoDB(String skema, String kueri, ArrayList<String> hasil, Object pt, Object ut) {
         JSONObject obj = new JSONObject();
+        obj.put("skema", skema);
         obj.put("kueri", kueri);
         obj.put("ids", hasil);
         obj.put("pt", pt);
@@ -97,7 +99,7 @@ public class Search extends HttpServlet {
         String skema = request.getParameter("skema");
         String kueri = request.getParameter("kueri");
 
-        //hitungRF(kueri);
+        hitungRF(skema, kueri);
         JSONObject obj = searchHadis(kueri, skema);
         JSONArray arr = (JSONArray) obj.get("hasil");
 
@@ -108,7 +110,7 @@ public class Search extends HttpServlet {
                     + "    <head>\n"
                     + "        <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n"
                     + "        <link rel=\"stylesheet\" href=\"main.css\">\n"
-                    + "        <title>JSP Page</title>\n"
+                    + "        <title>"+kueri+" - Cari Hadis!"+"</title>\n"
                     + "    </head>\n"
                     + "    <body>\n"
                     + "        <a href=\"index.jsp\"><h1>Cari Hadis!</h1></a>\n"
@@ -140,17 +142,19 @@ public class Search extends HttpServlet {
                     result_key.add(obj2.get("key").toString());
                     String imam = StringUtils.capitalize(obj2.get("imam").toString());
                     out.println("<h3 class=\"topic\"><a href=\"hadis.jsp?id="
-                            + obj2.get("key").toString() + "\">" 
+                            + obj2.get("key").toString() + "&kueri="+kueri+"&skema="+skema+"\">" 
                             + "HR. " + imam + " No. " + obj2.get("haditsId").toString() 
                             + "</a></h3>");
+                    out.println("<p class=\"indo\">"+obj2.get("kitab").toString()+" : "
+                            +obj2.get("bab").toString()+"</p>");
                 }
+                postHasiltoDB(skema, kueri, result_key, obj.get("pt"), obj.get("ut"));
             }
             out.println("</div>\n"
                     + "    </body>\n"
                     + "</html>");
         }
         
-        //postHasiltoDB(kueri, result_key, obj.get("pt"), obj.get("ut"));
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

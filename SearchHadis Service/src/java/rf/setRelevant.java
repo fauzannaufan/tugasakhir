@@ -1,6 +1,7 @@
 package rf;
 
 import backend.Database;
+import backend.ProsesTeks;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -10,7 +11,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -36,6 +36,7 @@ public class setRelevant extends HttpServlet {
         
         JSONObject obj = new JSONObject();
         JSONParser parser = new JSONParser();
+        ProsesTeks PT = new ProsesTeks();
         
         try {
             obj = (JSONObject) parser.parse(request.getParameter("param"));
@@ -43,12 +44,13 @@ public class setRelevant extends HttpServlet {
             Logger.getLogger(setRelevant.class.getName()).log(Level.SEVERE, null, ex);
         }
         
-        ArrayList<String> terms = new ArrayList<>();
-        terms.addAll((JSONArray)obj.get("terms"));
+        String skema = obj.get("skema").toString();
+        String kueri = obj.get("kueri").toString();
         String id = obj.get("id").toString();
+        ArrayList<String> terms = PT.prosesKueri(kueri);
         
         Database DB = new Database();
-        DB.setRelevant(terms, id);
+        DB.setRelevant(skema, terms, id);
         
         try (PrintWriter out = response.getWriter()) {
             out.println("Sukses");

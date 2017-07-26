@@ -31,24 +31,33 @@ public class calculateRf extends HttpServlet {
         response.setContentType("text/html;charset=UTF-8");
         
         String kueri = request.getParameter("kueri");
+        String skema = request.getParameter("skema");
         
         RelevanceFeedback RF = new RelevanceFeedback();
         Database DB = new Database();
         ProsesTeks PT = new ProsesTeks();
         ArrayList<String> p_kueri = PT.prosesKueri(kueri);
         
-        ArrayList<String> VR = DB.getVR(p_kueri);
-        ArrayList<String> VNR = DB.getVNR(p_kueri);
-        ArrayList<Double> pt = DB.getpt(p_kueri);
+        ArrayList<String> VR = DB.getVR(skema, p_kueri);
+        ArrayList<String> VNR = DB.getVNR(skema, p_kueri);
         
         String a = "";
-        if (pt != null && VR != null) {
-            RF.calculateProbBIM(kueri, VR, pt);
-            a = "1";
-        }
-        if (VR != null && VNR != null) {
-            RF.calculateRfOkapi(kueri, VR, VNR);
-            a = "2";
+        if (VNR.size() > 0) {
+            if (skema.equals("bim")) {
+                ArrayList<Double> pt = DB.getPt(p_kueri);
+                ArrayList<Double> ut = DB.getUt(p_kueri);
+                if (VR == null) {
+                    VR = new ArrayList<>();
+                }
+                RF.calculateProbBIM(kueri, VR, VNR, pt, ut);
+                a = "1";
+            } else if (skema.equals("okapi")) {
+                if (VR == null) {
+                    VR = new ArrayList<>();
+                }
+                RF.calculateRfOkapi(kueri, VR, VNR);
+                a = "2";
+            }
         }
         
         try (PrintWriter out = response.getWriter()) {

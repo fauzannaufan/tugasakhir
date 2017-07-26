@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import org.bson.Document;
 
 /**
  *
@@ -20,12 +21,12 @@ public class SearchHadis {
         return tftd;
     }
     
-    public double countOkapi(String id, String term, int N, double Lave, int df, int tftd, int Ld) {
+    public double countOkapi(double Lave, int tftd, int Ld) {
         double k1 = 1.5;
         double b = 0.75;
-        
-        double hasil = (double)N/df * ((double)(k1+1)*tftd) / ((double)k1*((1-b)+b*(Ld/Lave))+tftd);
-        
+
+        double hasil = ((double) (k1 + 1) * tftd) / ((double) k1 * ((1 - b) + b * (Ld / Lave)) + tftd);
+
         return hasil;
     }
     
@@ -56,43 +57,47 @@ public class SearchHadis {
         ProsesTeks PT = new ProsesTeks();
         Database DB = new Database();
         Hadis H = new Hadis();
-        
+
         //Inisialisasi variabel
         int[] dfs;
         int term_no;
         ArrayList<ArrayList<String>> ids = new ArrayList<>();
         Map<String, Double> map = new HashMap<>();
-        ArrayList<Double> RF;
-        
+        Document RF;
+
         //Kueri ke DB
         ArrayList<String> p_kueri = PT.prosesKueri(kueri);
         term_no = p_kueri.size();
         RF = DB.getProbBIM(p_kueri);
         dfs = new int[term_no];
-        for (int i=0;i<p_kueri.size();i++) {
+        for (int i = 0; i < p_kueri.size(); i++) {
             dfs[i] = DB.getDf(p_kueri.get(i));
             ids.add(DB.getIds(p_kueri.get(i)));
         }
-        
+
         //Menghitung pt dan ut
         double[] pt = new double[term_no];
+        double[] ut = new double[term_no];
         int N = DB.getN();
-        for (int i=0;i<term_no;i++) {
-            //pt[i] = 0.5;
+        for (int i = 0; i < term_no; i++) {
             if (RF == null) {
-                pt[i] = ((double)dfs[i]/N*2/3) + ((double)1/3);
+                pt[i] = ((double) dfs[i] / N * 2 / 3) + ((double) 1 / 3);
+                ut[i] = (double) dfs[i] / N;
             } else {
-                pt[i] = (double)RF.get(i);
+                ArrayList<Double> arr_pt = (ArrayList<Double>) RF.get("pt");
+                ArrayList<Double> arr_ut = (ArrayList<Double>) RF.get("ut");
+                pt[i] = (double) arr_pt.get(i);
+                ut[i] = (double) arr_ut.get(i);
             }
         }
-        
+
         //Menghitung nilai dokumen
-        for (int i=0;i<ids.size();i++) {
-            for (int j=0;j<ids.get(i).size();j++) {
+        for (int i = 0; i < ids.size(); i++) {
+            for (int j = 0; j < ids.get(i).size(); j++) {
                 String id = ids.get(i).get(j);
-                double a = Math.log10(pt[i]/(1.0-pt[i]));
-                double b = Math.log10(N/(double)dfs[i]);
-                map.put(id, map.getOrDefault(id, 0.0)+a+b);
+                double a = Math.log10(pt[i] / (1.0 - pt[i]));
+                double b = Math.log10((1.0 - ut[i]) / ut[i]);
+                map.put(id, map.getOrDefault(id, 0.0) + a + b);
             }
         }
         
@@ -104,7 +109,7 @@ public class SearchHadis {
         ProsesTeks PT = new ProsesTeks();
         Database DB = new Database();
         Hadis H = new Hadis();
-        
+
         //Inisialisasi variabel
         ArrayList<ArrayList<String>> ids = new ArrayList<>();
         Map<String, Double> map = new HashMap<>();
@@ -113,29 +118,30 @@ public class SearchHadis {
         ArrayList<String> allIds;
         Map<String, Integer> allDocLength = DB.getAllDocLength();
         ArrayList<Double> RF;
-        
+
         //Kueri ke DB
         ArrayList<String> p_kueri = PT.prosesKueri(kueri);
+        System.out.println(p_kueri);
         RF = DB.getRfOkapi(p_kueri);
-        for (int i=0;i<p_kueri.size();i++) {
+        for (int i = 0; i < p_kueri.size(); i++) {
             ids.add(DB.getIds(p_kueri.get(i)));
         }
-        
+
         //Menghitung nilai dokumen
-        for (int i=0;i<ids.size();i++) {
+        for (int i = 0; i < ids.size(); i++) {
             int df = DB.getDf(p_kueri.get(i));
             allIds = DB.getAllIds(p_kueri.get(i));
-            for (int j=0;j<ids.get(i).size();j++) {
+            for (int j = 0; j < ids.get(i).size(); j++) {
                 String id = ids.get(i).get(j);
-                int tftd = getTftd(allIds,id);
+                int tftd = getTftd(allIds, id);
                 int Ld = allDocLength.get(id);
                 double a;
                 if (RF == null) {
-                    a = Math.log10(countOkapi(id,p_kueri.get(i),N,Lave,df,tftd,Ld));
+                    a = Math.log10((double) N / df * countOkapi(Lave, tftd, Ld));
                 } else {
-                    a = Math.log10(RF.get(i) * countOkapi(id,p_kueri.get(i),N,Lave,df,tftd,Ld));
+                    a = Math.log10(RF.get(i) * countOkapi(Lave, tftd, Ld));
                 }
-                map.put(id, map.getOrDefault(id, 0.0)+a);
+                map.put(id, map.getOrDefault(id, 0.0) + a);
             }
         }
         
@@ -147,9 +153,9 @@ public class SearchHadis {
      */
     public static void main(String[] args) {
         SearchHadis SH = new SearchHadis();
-        String kueri = "dluha";
+        String kueri = "shalat berjamaah wajib subuh zhuhur ashar maghrib isya";
         
-        //SH.searchBIM(kueri);
+        SH.searchBIM(kueri);
         //SH.searchOkapi(kueri);
     }
     

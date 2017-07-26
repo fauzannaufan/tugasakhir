@@ -1,6 +1,7 @@
 package rf;
 
 import backend.Database;
+import backend.ProsesTeks;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -36,6 +37,7 @@ public class addRelevantDocs extends HttpServlet {
         
         JSONObject obj = new JSONObject();
         JSONParser parser = new JSONParser();
+        ProsesTeks PT = new ProsesTeks();
         
         try {
             obj = (JSONObject) parser.parse(request.getParameter("param"));
@@ -43,14 +45,15 @@ public class addRelevantDocs extends HttpServlet {
             Logger.getLogger(addRelevantDocs.class.getName()).log(Level.SEVERE, null, ex);
         }
         
-        ArrayList<String> terms = new ArrayList<>();
-        terms.addAll((JSONArray)obj.get("terms"));
+        String skema = obj.get("skema").toString();
+        ArrayList<String> p_kueri = PT.prosesKueri(obj.get("kueri").toString());
         ArrayList<String> ids  = new ArrayList<>();
         ids.addAll((JSONArray)obj.get("ids"));
         ArrayList<Double> pt = (ArrayList<Double>)obj.get("pt");
+        ArrayList<Double> ut = (ArrayList<Double>)obj.get("ut");
         
         Database DB = new Database();
-        DB.addRelevantDocs(terms, ids, pt);
+        DB.addRelevantDocs(skema, p_kueri, ids, pt, ut);
         
         try (PrintWriter out = response.getWriter()) {
             out.println("Sukses");

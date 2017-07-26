@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -13,7 +14,6 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Form;
 import javax.ws.rs.core.MediaType;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 /**
@@ -35,10 +35,11 @@ public class HadisServlet extends HttpServlet {
             throws ServletException, IOException {
         String id = request.getParameter("id");
         String kueri = request.getParameter("kueri");
+        String skema = request.getParameter("skema");
         
-        ArrayList<String> terms = new ArrayList<>(Arrays.asList(kueri.split("-")));
         JSONObject obj = new JSONObject();
-        obj.put("terms", terms);
+        obj.put("skema", skema);
+        obj.put("kueri", kueri);
         obj.put("id", id);
         
         Form form = new Form();

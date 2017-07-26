@@ -48,12 +48,6 @@ public class Database {
         return L != 0;
     }
     
-    public boolean findBIM(ArrayList<String> terms) {
-        MongoCollection<Document> coll = connect("bim");
-        long L = coll.count(new Document("term", terms));
-        return L != 0;
-    }
-    
     public boolean findOkapi(ArrayList<String> terms) {
         MongoCollection<Document> coll = connect("okapi");
         long L = coll.count(new Document("term", terms));
@@ -164,55 +158,35 @@ public class Database {
         return Double.parseDouble(avg.get("avgLength").toString());
     }
     
-    public ArrayList<Double> getProbBIM(ArrayList<String> terms) {
+    public Document getProbBIM(ArrayList<String> terms) {
         MongoCollection<Document> coll = connect("bim");
         
         ArrayList<Document> arr = coll.find(new Document("term", terms))
                 .projection(new Document("_id", 0)
-                .append("pt", 1)).into(new ArrayList<Document>());
+                .append("pt", 1).append("ut", 1)).into(new ArrayList<Document>());
         
         if (arr.size() > 0) {
-            ArrayList<Double> pt = (ArrayList<Double>)arr.get(0).get("pt");
-            return pt;
+            Document doc = arr.get(0);
+            return doc;
         } else {
             return null;
         }
     }
     
-    public void insertBIM(ArrayList<String> terms, ArrayList<Double> pt) {
-        MongoCollection<Document> coll = connect("bim");
-        Document doc = new Document("term", terms)
-                .append("pt", pt);
-        
-        coll.insertOne(doc);
-    }
-    
-    public void updateBIM(ArrayList<String> terms, ArrayList<Double> pt) {
+    public void updateBIM(ArrayList<String> terms, ArrayList<Double> pt, ArrayList<Double> ut) {
         MongoCollection<Document> coll = connect("bim");
         
-        //Update document frequency
-        Document doc = new Document("term", terms)
-                .append("pt", pt);
+        Document doc = new Document("$set", new Document("pt", pt).append("ut", ut));
         
-        coll.replaceOne(new Document("term", terms), doc);
-    }
-    
-    public void insertOkapi(ArrayList<String> terms, ArrayList<Double> rf) {
-        MongoCollection<Document> coll = connect("okapi");
-        Document doc = new Document("term", terms)
-                .append("rf", rf);
-        
-        coll.insertOne(doc);
+        coll.updateOne(new Document("term", terms), doc);
     }
     
     public void updateOkapi(ArrayList<String> terms, ArrayList<Double> rf) {
         MongoCollection<Document> coll = connect("okapi");
         
-        //Update document frequency
-        Document doc = new Document("term", terms)
-                .append("rf", rf);
+        Document doc = new Document("$set", new Document("rf", rf));
         
-        coll.replaceOne(new Document("term", terms), doc);
+        coll.updateOne(new Document("term", terms), doc);
     }
     
     public ArrayList<Double> getRfOkapi(ArrayList<String> terms) {
@@ -239,25 +213,54 @@ public class Database {
                 .projection(new Document("_id", 0)
                         .append("indo", 1)
                         .append("imam", 1)
+                        .append("kitabId", 1)
+                        .append("babId", 1)
                         .append("haditsId",1)).first();
         
+        String imam = doc.get("imam").toString();
+        String kitabId = doc.get("kitabId").toString();
+        String babId = doc.get("babId").toString();
+        
         ArrayList<String> arr = new ArrayList<>();
-        arr.add(doc.get("imam").toString());
+        arr.add(imam);
         arr.add(doc.get("haditsId").toString());
         arr.add(doc.get("indo").toString());
+        arr.add(getKitabHadis(imam, kitabId));
+        arr.add(getBabHadis(imam, babId));
         
         return arr;
     }
     
+    public String getKitabHadis(String imam, String kitabId) {
+        MongoCollection<Document> coll = connect("kitab");
+        
+        Document doc = coll.find(new Document("imam", imam)
+                .append("kitabId", kitabId))
+                .projection(new Document("_id", 0)
+                        .append("judul", 1)).first();
+        
+        return doc.get("judul").toString();
+    }
     
-    public void addRelevantDocs(ArrayList<String> terms, ArrayList<String> ids, ArrayList<Double> pt) {
-        MongoCollection<Document> coll = connect("relevance");
+    public String getBabHadis(String imam, String babId) {
+        MongoCollection<Document> coll = connect("bab");
+        
+        Document doc = coll.find(new Document("imam", imam)
+                .append("babId", babId))
+                .projection(new Document("_id", 0)
+                        .append("judul", 1)).first();
+        
+        return doc.get("judul").toString();
+    }
+    
+    public void addRelevantDocs(String skema, ArrayList<String> terms, ArrayList<String> ids, ArrayList<Double> pt, ArrayList<Double> ut) {
+        MongoCollection<Document> coll = connect(skema);
         
         Document doc;
         if (pt.isEmpty()) {
             doc = new Document("term", terms).append("VNR", ids);
         } else {
-            doc = new Document("term", terms).append("VNR", ids).append("pt", pt);
+            doc = new Document("term", terms).append("VNR", ids).append("pt_lama", pt).append("ut_lama", ut);
         }
         
         long L = coll.count(new Document("term", terms));
@@ -268,8 +271,8 @@ public class Database {
         }
     }
     
-    public void setRelevant(ArrayList<String> terms, String id) {
-        MongoCollection<Document> coll = connect("relevance");
+    public void setRelevant(String skema, ArrayList<String> terms, String id) {
+        MongoCollection<Document> coll = connect(skema);
         
         Document doc = new Document("$push", new Document("VR", id));
         coll.updateOne(new Document().append("term", terms), doc);
@@ -279,8 +282,8 @@ public class Database {
         
     }
     
-    public ArrayList<String> getVR(ArrayList<String> terms) {
-        MongoCollection<Document> coll = connect("relevance");
+    public ArrayList<String> getVR(String skema, ArrayList<String> terms) {
+        MongoCollection<Document> coll = connect(skema);
         ArrayList<Document> arrays = coll.find(new Document("term", terms))
                 .projection(new Document("VR", 1)
                 .append("_id", 0)).into(new ArrayList<Document>());
@@ -293,8 +296,8 @@ public class Database {
         }
     }
     
-    public ArrayList<String> getVNR(ArrayList<String> terms) {
-        MongoCollection<Document> coll = connect("relevance");
+    public ArrayList<String> getVNR(String skema, ArrayList<String> terms) {
+        MongoCollection<Document> coll = connect(skema);
         ArrayList<Document> arrays = coll.find(new Document("term", terms))
                 .projection(new Document("VNR", 1)
                 .append("_id", 0)).into(new ArrayList<Document>());
@@ -303,22 +306,37 @@ public class Database {
             ArrayList<String> ids = (ArrayList<String>)arrays.get(0).get("VNR");
             return ids;
         } else {
-            return null;
+            return new ArrayList<>();
         }
     }
     
-    public ArrayList<Double> getpt(ArrayList<String> terms) {
-        MongoCollection<Document> coll = connect("relevance");
+    public ArrayList<Double> getPt(ArrayList<String> terms) {
+        MongoCollection<Document> coll = connect("bim");
         
         ArrayList<Document> arr = coll.find(new Document("term", terms))
                 .projection(new Document("_id", 0)
-                .append("pt", 1)).into(new ArrayList<Document>());
+                .append("pt_lama", 1)).into(new ArrayList<Document>());
         
         if (arr.size() > 0) {
-            ArrayList<Double> pt = (ArrayList<Double>)arr.get(0).get("pt");
+            ArrayList<Double> pt = (ArrayList<Double>)arr.get(0).get("pt_lama");
             return pt;
         } else {
-            return null;
+            return new ArrayList<>();
+        }
+    }
+    
+    public ArrayList<Double> getUt(ArrayList<String> terms) {
+        MongoCollection<Document> coll = connect("bim");
+        
+        ArrayList<Document> arr = coll.find(new Document("term", terms))
+                .projection(new Document("_id", 0)
+                .append("ut_lama", 1)).into(new ArrayList<Document>());
+        
+        if (arr.size() > 0) {
+            ArrayList<Double> ut = (ArrayList<Double>)arr.get(0).get("ut_lama");
+            return ut;
+        } else {
+            return new ArrayList<>();
         }
     }
 }
