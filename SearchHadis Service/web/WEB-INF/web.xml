@@ -20,6 +20,10 @@
         <servlet-name>calculateRf</servlet-name>
         <servlet-class>rf.calculateRf</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>getDataHadis</servlet-name>
+        <servlet-class>hadis.getDataHadis</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>SearchBIM</servlet-name>
         <url-pattern>/SearchBIM</url-pattern>
@@ -39,6 +43,10 @@
     <servlet-mapping>
         <servlet-name>calculateRf</servlet-name>
         <url-pattern>/calculateRf</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>getDataHadis</servlet-name>
+        <url-pattern>/getDataHadis</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>

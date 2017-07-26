@@ -136,6 +136,10 @@ p.indo {
     font-size:small;
 }
 
+p.indo2 {
+    font-size:medium;
+}
+
 p.white {
     color:white;
     display:inline;

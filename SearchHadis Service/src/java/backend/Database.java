@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import org.bson.Document;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
 /**
  *
@@ -215,11 +217,25 @@ public class Database {
                         .append("imam", 1)
                         .append("kitabId", 1)
                         .append("babId", 1)
+                        .append("arab", 1)
+                        .append("related", 1)
                         .append("haditsId",1)).first();
         
         String imam = doc.get("imam").toString();
         String kitabId = doc.get("kitabId").toString();
         String babId = doc.get("babId").toString();
+        ArrayList<Document> related = (ArrayList<Document>) doc.get("related");
+        //ArrayList<Document> related = (ArrayList<Document>) doc.get("related");
+        JSONObject obj_baru = new JSONObject();
+        JSONArray arr_baru = new JSONArray();
+        for (int i=0;i<related.size();i++) {
+            Document doc2 = related.get(i);
+            String key = H.setNomorHadis(doc2.get("imam").toString(), doc2.get("haditsId").toString());
+            doc2.put("key", key);
+            arr_baru.add(doc2);
+        }
+        JSONObject obj = new JSONObject();
+        obj.put("related", arr_baru);
         
         ArrayList<String> arr = new ArrayList<>();
         arr.add(imam);
@@ -227,6 +243,8 @@ public class Database {
         arr.add(doc.get("indo").toString());
         arr.add(getKitabHadis(imam, kitabId));
         arr.add(getBabHadis(imam, babId));
+        arr.add(doc.get("arab").toString());
+        arr.add(obj.toJSONString());
         
         return arr;
     }

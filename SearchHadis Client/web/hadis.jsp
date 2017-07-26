@@ -10,14 +10,14 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <link rel="stylesheet" href="main.css">
-        <title>JSP Page</title>
+        <title>Lihat Hadis - Cari Hadis!</title>
     </head>
     <body>
         <a href="index.jsp">
             <h1>Cari Hadis!</h1>
-            <c:set var="id" value="${param.id}" scope="request" />
-            <c:set var="id" value="${param.kueri}" scope="request" />
-            <jsp:include page="/HadisServlet" />
         </a>
+        <c:set var="id" value="${param.id}" scope="request" />
+        <c:set var="id" value="${param.kueri}" scope="request" />
+        <jsp:include page="/HadisServlet" />
     </body>
 </html>
