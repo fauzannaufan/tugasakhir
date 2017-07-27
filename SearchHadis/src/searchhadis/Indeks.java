@@ -1,6 +1,8 @@
 package searchhadis;
 
+import com.mongodb.client.MongoCollection;
 import java.util.ArrayList;
+import org.bson.Document;
 
 /**
  *
@@ -19,9 +21,12 @@ public class Indeks {
         String no_hadis;
         int jumlah;
         
+        MongoCollection<Document> indeks = DB.connect("indeks");
+        MongoCollection<Document> doclength = DB.connect("doclength");
+        
         jumlah = H.getJumlahHadis(imam);
-        for (int i=0;i<jumlah;i++) {
-            System.out.println(i);
+        for (int i=2330;i<jumlah;i++) {
+            System.out.println(i+"/"+jumlah);
             
             //Ambil term-term dari hadis
             teks = H.getTeksHadis(imam, i);
@@ -31,27 +36,27 @@ public class Indeks {
             
             //Insert term ke DB
             for (int j=0;j<output.size();j++) {
-                if (DB.find(output.get(j))) {
+                if (DB.find(indeks, output.get(j))) {
                     //Update existing
-                    if (DB.findId(output.get(j), no_hadis)) {
-                        DB.addId(no_hadis, output.get(j));
+                    if (DB.findId(indeks, output.get(j), no_hadis)) {
+                        DB.addId(indeks, no_hadis, output.get(j));
                     } else {
-                        DB.update(no_hadis, output.get(j));
+                        DB.update(indeks, no_hadis, output.get(j));
                     }
                 } else {
                     //Insert new
-                    DB.insert(no_hadis, output.get(j));
+                    DB.insert(indeks, no_hadis, output.get(j));
                 }
             }
             
             //Insert document length
-            DB.insertDocLength(no_hadis, output.size());
+            DB.insertDocLength(doclength, no_hadis, output.size());
         }
     }
     
     public static void main (String args[]) {
         Indeks I = new Indeks();
-        String imam = "bukhari";
+        String imam = "darimi";
         I.buatIndeks(imam);
     }
     

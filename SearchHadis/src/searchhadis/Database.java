@@ -36,14 +36,14 @@ public class Database {
         return coll;
     }
     
-    public boolean find(String term) {
-        MongoCollection<Document> coll = connect("indeks");
+    public boolean find(MongoCollection<Document> coll, String term) {
+        //MongoCollection<Document> coll = connect("indeks");
         long L = coll.count(new Document("nama", term));
         return L != 0;
     }
     
-    public boolean findId(String term, String id) {
-        MongoCollection<Document> coll = connect("indeks");
+    public boolean findId(MongoCollection<Document> coll, String term, String id) {
+        //MongoCollection<Document> coll = connect("indeks");
         long L = coll.count(Document.parse("{\"nama\" : \""+term+"\", \"id\" : \""+id+"\"}"));
         return L != 0;
     }
@@ -60,16 +60,16 @@ public class Database {
         return L != 0;
     }
     
-    public void insertDocLength(String no_hadis, int length) {
-        MongoCollection<Document> coll = connect("doclength");
+    public void insertDocLength(MongoCollection<Document> coll, String no_hadis, int length) {
+        //MongoCollection<Document> coll = connect("doclength");
         Document doc = new Document("id", no_hadis)
                 .append("length", length);
         
         coll.insertOne(doc);
     }
     
-    public void insert(String no_hadis, String term) {
-        MongoCollection<Document> coll = connect("indeks");
+    public void insert(MongoCollection<Document> coll, String no_hadis, String term) {
+        //MongoCollection<Document> coll = connect("indeks");
         Document doc = new Document("nama", term)
                 .append("df", 1)
                 .append("id", Arrays.asList(no_hadis));
@@ -77,8 +77,8 @@ public class Database {
         coll.insertOne(doc);
     }
     
-    public void update(String no_hadis, String term) {
-        MongoCollection<Document> coll = connect("indeks");
+    public void update(MongoCollection<Document> coll, String no_hadis, String term) {
+        //MongoCollection<Document> coll = connect("indeks");
         
         //Update document frequency
         Document doc = new Document().append("$inc",
@@ -89,8 +89,8 @@ public class Database {
         coll.updateOne(new Document().append("nama", term), doc);
     }
     
-    public void addId(String no_hadis, String term) {
-        MongoCollection<Document> coll = connect("indeks");
+    public void addId(MongoCollection<Document> coll, String no_hadis, String term) {
+        //MongoCollection<Document> coll = connect("indeks");
         
         //Update document frequency
         Document doc = new Document().append("$push",

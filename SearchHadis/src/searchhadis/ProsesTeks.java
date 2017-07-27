@@ -3,9 +3,11 @@ package searchhadis;
 import IndonesianNLP.IndonesianSentenceFormalization;
 import IndonesianNLP.IndonesianSentenceTokenizer;
 import IndonesianNLP.IndonesianStemmer;
+import com.mongodb.client.MongoCollection;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import org.bson.Document;
 
 
 /**
@@ -98,6 +100,7 @@ public class ProsesTeks {
     
     public ArrayList<String> prosesKueri(String text) {
         ArrayList<String> arr = prosesTeks(text);
+        MongoCollection<Document> indeks = new Database().connect("indeks");
         
         HashSet<String> hs = new HashSet<>();
         hs.addAll(arr);
@@ -106,7 +109,7 @@ public class ProsesTeks {
         
         for (int i=0;i<arr.size();i++) {
             String s = arr.get(i);
-            if(!new Database().find(s)) {
+            if(!new Database().find(indeks, s)) {
                 arr.remove(s);
             }
         }

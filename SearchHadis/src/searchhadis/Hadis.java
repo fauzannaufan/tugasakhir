@@ -81,11 +81,14 @@ public class Hadis {
     }
     
     //Hanya untuk testing modul
-    /*public static void main (String args[]) {
-        //for (int i=0;i<20;i++) {
-            String s = new Hadis().setNomorHadis("bukhari", "501");
+    public static void main (String args[]) {
+        int idx_error = 2330;
+        //for (int i=idx_error;i<idx;i++) {
+            String s = new Hadis().getTeksHadis("darimi", idx_error);
+        
+            //String s = new Hadis().setNomorHadis("bukhari", "501");
             System.out.println(s);
         //}
-    }*/
+    }
     
 }
