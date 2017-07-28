@@ -1,4 +1,4 @@
-package searchhadis;
+package buatindeks;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -81,7 +81,7 @@ public class Hadis {
     }
     
     //Hanya untuk testing modul
-    public static void main (String args[]) {
+    /*public static void main (String args[]) {
         int idx_error = 2330;
         //for (int i=idx_error;i<idx;i++) {
             String s = new Hadis().getTeksHadis("darimi", idx_error);
@@ -89,6 +89,6 @@ public class Hadis {
             //String s = new Hadis().setNomorHadis("bukhari", "501");
             System.out.println(s);
         //}
-    }
+    }*/
     
 }

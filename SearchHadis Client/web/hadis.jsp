@@ -16,8 +16,8 @@
         <a href="index.jsp">
             <h1>Cari Hadis!</h1>
         </a>
-        <c:set var="id" value="${param.id}" scope="request" />
-        <c:set var="id" value="${param.kueri}" scope="request" />
+        <c:set var="id" value="${param.id}" scope="request"></c:set>
+        <c:set var="id" value="${param.kueri}" scope="request"></c:set>
         <jsp:include page="/HadisServlet" />
     </body>
 </html>

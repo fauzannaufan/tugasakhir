@@ -48,8 +48,8 @@ public class SearchHadis {
 
         //Cetak hasil pencarian
         list2 = new ArrayList<>(result.entrySet());
-        if (list2.size() >= 10) {
-            list2 = list2.subList(0, 10);
+        if (list2.size() >= 100) {
+            list2 = list2.subList(0, 100);
         }
 
         for (Map.Entry entry : list2) {
@@ -59,8 +59,6 @@ public class SearchHadis {
             obj2.put("imam", arr2.get(0));
             obj2.put("haditsId", arr2.get(1));
             obj2.put("indo", arr2.get(2));
-            obj2.put("kitab", arr2.get(3));
-            obj2.put("bab", arr2.get(4));
             arr.add(obj2);
         }
 

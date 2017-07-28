@@ -63,7 +63,7 @@ public class Search extends HttpServlet {
 
         return obj;
     }
-    
+
     private void postHasiltoDB(String skema, String kueri, ArrayList<String> hasil, Object pt, Object ut) {
         JSONObject obj = new JSONObject();
         obj.put("skema", skema);
@@ -93,7 +93,7 @@ public class Search extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        
+
         ArrayList<String> result_key = new ArrayList<>();
 
         String skema = request.getParameter("skema");
@@ -110,7 +110,17 @@ public class Search extends HttpServlet {
                     + "    <head>\n"
                     + "        <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n"
                     + "        <link rel=\"stylesheet\" href=\"main.css\">\n"
-                    + "        <title>"+kueri+" - Cari Hadis!"+"</title>\n"
+                    + "        <script type=\"text/javascript\">\n"
+                    + "    function open_page(page_no) {\n"
+                    + "        for (var i=1;i<11;i++) {\n"
+                    + "            document.getElementById(\"page-\"+i).style.display = 'none';\n"
+                    + "            document.getElementById(\"pagination-\"+i).classList.remove('active');\n"
+                    + "        }\n"
+                    + "        document.getElementById(\"page-\"+page_no).style.display = 'block';\n"
+                    + "        document.getElementById(\"pagination-\"+page_no).classList.add('active');\n"
+                    + "    }\n"
+                    + "         </script>\n"
+                    + "        <title>" + kueri + " - Cari Hadis!" + "</title>\n"
                     + "    </head>\n"
                     + "    <body>\n"
                     + "        <a href=\"index.jsp\"><h1>Cari Hadis!</h1></a>\n"
@@ -133,28 +143,46 @@ public class Search extends HttpServlet {
             }
             out.println("           </form></div><br>\n");
 
+            int total_page = arr.size() / 10;
+            
             //Bagian hasil pencarian
             if (arr.isEmpty()) {
                 out.println("Maaf, hadis tidak ditemukan.");
             } else {
-                for (int i = 0; i < arr.size(); i++) {
-                    JSONObject obj2 = (JSONObject) arr.get(i);
-                    result_key.add(obj2.get("key").toString());
-                    String imam = StringUtils.capitalize(obj2.get("imam").toString());
-                    out.println("<h3 class=\"topic\"><a href=\"hadis.jsp?id="
-                            + obj2.get("key").toString() + "&kueri="+kueri+"&skema="+skema+"\">" 
-                            + "HR. " + imam + " No. " + obj2.get("haditsId").toString() 
-                            + "</a></h3>");
-                    out.println("<p class=\"indo\">"+obj2.get("kitab").toString()+" : "
-                            +obj2.get("bab").toString()+"</p>");
+                for (int i = 0; i < total_page; i++) {
+                    if (i != 0) {
+                        out.println("<div id=\"page-" + (i + 1) + "\" style=\"display:none\">\n");
+                    } else {
+                        out.println("<div id=\"page-" + (i + 1) + "\" >\n");
+                    }
+                    int j = 0;
+                    while (j < 10 && i*10+j < arr.size()) {
+                        JSONObject obj2 = (JSONObject) arr.get(i * 10 + j);
+                        result_key.add(obj2.get("key").toString());
+                        String imam = StringUtils.capitalize(obj2.get("imam").toString());
+                        out.println("<h3 class=\"topic\"><a href=\"hadis.jsp?id="
+                                + obj2.get("key").toString() + "&kueri=" + kueri + "&skema=" + skema + "\">"
+                                + "HR. " + imam + " No. " + obj2.get("haditsId").toString()
+                                + "</a></h3>");
+                        j++;
+                    }
+                    out.println("</div>\n");
                 }
+                out.println("<div class=\"pagination\">\n"
+                        + "  <a>&laquo;</a>\n");
+                out.println("  <a id=\"pagination-1\" class=\"active\" onclick=\"open_page(1\">1</a>\n");
+                for (int i=1;i<total_page;i++) {
+                    out.println("  <a id=\"pagination-"+(i+1)+"\" onclick=\"open_page("+(i+1)+")\">"+(i+1)+"</a>\n");
+                }
+                out.println("  <a>&raquo;</a>\n"
+                        + "</div>\n");
                 postHasiltoDB(skema, kueri, result_key, obj.get("pt"), obj.get("ut"));
             }
             out.println("</div>\n"
                     + "    </body>\n"
                     + "</html>");
         }
-        
+
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
