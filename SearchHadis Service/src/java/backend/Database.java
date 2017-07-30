@@ -30,6 +30,8 @@ public class Database {
     private final MongoCollection<Document> coll_kitab;
     private final MongoCollection<Document> coll_bab;
 
+    private MongoClient client;
+
     public Database() {
         coll_indeks = connect("indeks");
         coll_okapi = connect("okapi");
@@ -40,12 +42,16 @@ public class Database {
         coll_bab = connect("bab");
     }
 
+    public void closeConnection() {
+        client.close();
+    }
+
     private MongoCollection<Document> connect(String nama) {
 
         MongoCollection<Document> coll = null;
 
         try {
-            MongoClient client = new MongoClient();
+            client = new MongoClient();
             MongoDatabase db = client.getDatabase("test");
             coll = db.getCollection(nama);
             System.out.println("Connected");
@@ -200,6 +206,7 @@ public class Database {
 
     public ArrayList<String> getHadis(String id) {
         Hadis H = new Hadis();
+        ArrayList<String> arr = new ArrayList<>();
 
         Document doc = coll_coba.find(new Document("imam", H.getImam(id))
                 .append("haditsId", H.getIdHadis(id)))
@@ -212,10 +219,20 @@ public class Database {
                         .append("related", 1)
                         .append("haditsId", 1)).first();
 
-        String imam = doc.get("imam").toString();
-        String kitabId = doc.get("kitabId").toString();
-        String babId = doc.get("babId").toString();
-        ArrayList<Document> related = (ArrayList<Document>) doc.get("related");
+        String imam = "";
+        String kitabId = "";
+        String babId = "";
+        ArrayList<Document> related = new ArrayList<>();
+
+        try {
+            imam = doc.get("imam").toString();
+            kitabId = doc.get("kitabId").toString();
+            babId = doc.get("babId").toString();
+            related = (ArrayList<Document>) doc.get("related");
+        } catch (NullPointerException e) {
+            System.out.println("NULL!");
+        }
+
         JSONArray arr_baru = new JSONArray();
         for (int i = 0; i < related.size(); i++) {
             Document doc2 = related.get(i);
@@ -226,7 +243,6 @@ public class Database {
         JSONObject obj = new JSONObject();
         obj.put("related", arr_baru);
 
-        ArrayList<String> arr = new ArrayList<>();
         arr.add(imam);
         arr.add(doc.get("haditsId").toString());
         arr.add(doc.get("indo").toString());
@@ -300,19 +316,23 @@ public class Database {
         ArrayList<Document> arrays = new ArrayList<>();
         if (skema.equals("bim")) {
             arrays = coll_bim.find(new Document("term", terms))
-                .projection(new Document("VR", 1)
-                        .append("_id", 0)).into(new ArrayList<Document>());
+                    .projection(new Document("VR", 1)
+                            .append("_id", 0)).into(new ArrayList<Document>());
         } else if (skema.equals("okapi")) {
             arrays = coll_okapi.find(new Document("term", terms))
-                .projection(new Document("VR", 1)
-                        .append("_id", 0)).into(new ArrayList<Document>());
+                    .projection(new Document("VR", 1)
+                            .append("_id", 0)).into(new ArrayList<Document>());
         }
 
         if (arrays.size() > 0) {
             ArrayList<String> ids = (ArrayList<String>) arrays.get(0).get("VR");
-            return ids;
+            if (ids != null) {
+                return ids;
+            } else {
+                return new ArrayList<>();
+            }
         } else {
-            return null;
+            return new ArrayList<>();
         }
     }
 
@@ -320,17 +340,21 @@ public class Database {
         ArrayList<Document> arrays = new ArrayList<>();
         if (skema.equals("bim")) {
             arrays = coll_bim.find(new Document("term", terms))
-                .projection(new Document("VNR", 1)
-                        .append("_id", 0)).into(new ArrayList<Document>());
+                    .projection(new Document("VNR", 1)
+                            .append("_id", 0)).into(new ArrayList<Document>());
         } else if (skema.equals("okapi")) {
             arrays = coll_okapi.find(new Document("term", terms))
-                .projection(new Document("VNR", 1)
-                        .append("_id", 0)).into(new ArrayList<Document>());
+                    .projection(new Document("VNR", 1)
+                            .append("_id", 0)).into(new ArrayList<Document>());
         }
 
         if (arrays.size() > 0) {
             ArrayList<String> ids = (ArrayList<String>) arrays.get(0).get("VNR");
-            return ids;
+            if (ids != null) {
+                return ids;
+            } else {
+                return new ArrayList<>();
+            }
         } else {
             return new ArrayList<>();
         }

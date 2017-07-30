@@ -51,7 +51,6 @@ public class setRelevant extends HttpServlet {
         
         Database DB = new Database();
         DB.setRelevant(skema, terms, id);
-        
         try (PrintWriter out = response.getWriter()) {
             out.println("Sukses");
         }

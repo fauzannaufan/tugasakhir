@@ -54,7 +54,6 @@ public class addRelevantDocs extends HttpServlet {
         
         Database DB = new Database();
         DB.addRelevantDocs(skema, p_kueri, ids, pt, ut);
-        
         try (PrintWriter out = response.getWriter()) {
             out.println("Sukses");
         }

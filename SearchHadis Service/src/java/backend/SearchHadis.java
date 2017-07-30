@@ -129,7 +129,11 @@ public class SearchHadis {
                 map.put(id, map.getOrDefault(id, 0.0) + a + b);
             }
         }
-
+        
+        map.entrySet().stream().filter((entry) -> (entry.getValue() <= 0)).forEach((entry) -> {
+            map.remove(entry.getKey());
+        });
+        
         return sortResulttoJSON(map, pt, ut);
     }
 
@@ -173,7 +177,7 @@ public class SearchHadis {
                 map.put(id, map.getOrDefault(id, 0.0) + a);
             }
         }
-
+        
         return sortResulttoJSON(map, null, null);
     }
 

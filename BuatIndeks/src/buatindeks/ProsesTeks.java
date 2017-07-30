@@ -113,6 +113,7 @@ public class ProsesTeks {
         }
         
         Collections.sort(arr);
+        DB.closeConnection();
         return arr;
     }
     

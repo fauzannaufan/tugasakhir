@@ -41,16 +41,12 @@ public class Search extends HttpServlet {
     private JSONObject searchHadis(String kueri, String skema) {
         Form form = new Form();
         Client client = ClientBuilder.newClient();
-        String url = "";
         JSONParser parser = new JSONParser();
         JSONObject obj = new JSONObject();
 
         form.param("kueri", kueri);
-        if (skema.equals("bim")) {
-            url = "http://localhost:8080/SearchHadis_Service/SearchBIM";
-        } else if (skema.equals("okapi")) {
-            url = "http://localhost:8080/SearchHadis_Service/SearchOkapi";
-        }
+        form.param("skema", skema);
+        String url = "http://localhost:8080/SearchHadis_Service/Search";
 
         String result = client.target(url).request(MediaType.APPLICATION_JSON)
                 .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED), String.class);
@@ -164,13 +160,14 @@ public class Search extends HttpServlet {
                                 + obj2.get("key").toString() + "&kueri=" + kueri + "&skema=" + skema + "\">"
                                 + "HR. " + imam + " No. " + obj2.get("haditsId").toString()
                                 + "</a></h3>");
+                        out.println("<p class=\"indo\">"+obj2.get("indo").toString()+"</p>");
                         j++;
                     }
                     out.println("</div>\n");
                 }
                 out.println("<div class=\"pagination\">\n"
                         + "  <a>&laquo;</a>\n");
-                out.println("  <a id=\"pagination-1\" class=\"active\" onclick=\"open_page(1\">1</a>\n");
+                out.println("  <a id=\"pagination-1\" class=\"active\" onclick=\"open_page(1)\">1</a>\n");
                 for (int i=1;i<total_page;i++) {
                     out.println("  <a id=\"pagination-"+(i+1)+"\" onclick=\"open_page("+(i+1)+")\">"+(i+1)+"</a>\n");
                 }

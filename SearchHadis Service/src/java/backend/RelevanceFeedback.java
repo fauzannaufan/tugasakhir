@@ -89,7 +89,6 @@ public class RelevanceFeedback {
         }
         
         DB.updateOkapi(p_kueri, rf);
-        
     }
 
 }

@@ -1,14 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app version="3.1" xmlns="http://xmlns.jcp.org/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd">
     <servlet>
-        <servlet-name>SearchBIM</servlet-name>
-        <servlet-class>search.SearchBIM</servlet-class>
-    </servlet>
-    <servlet>
-        <servlet-name>SearchOkapi</servlet-name>
-        <servlet-class>search.SearchOkapi</servlet-class>
-    </servlet>
-    <servlet>
         <servlet-name>addRelevantDocs</servlet-name>
         <servlet-class>rf.addRelevantDocs</servlet-class>
     </servlet>
@@ -24,14 +16,10 @@
         <servlet-name>getDataHadis</servlet-name>
         <servlet-class>hadis.getDataHadis</servlet-class>
     </servlet>
-    <servlet-mapping>
-        <servlet-name>SearchBIM</servlet-name>
-        <url-pattern>/SearchBIM</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>SearchOkapi</servlet-name>
-        <url-pattern>/SearchOkapi</url-pattern>
-    </servlet-mapping>
+    <servlet>
+        <servlet-name>Search</servlet-name>
+        <servlet-class>search.Search</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>addRelevantDocs</servlet-name>
         <url-pattern>/addRelevantDocs</url-pattern>
@@ -47,6 +35,10 @@
     <servlet-mapping>
         <servlet-name>getDataHadis</servlet-name>
         <url-pattern>/getDataHadis</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>Search</servlet-name>
+        <url-pattern>/Search</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>

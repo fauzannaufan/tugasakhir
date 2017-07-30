@@ -18,9 +18,13 @@ public class BuatIndeks {
         String indo;
         String no_hadis;
         int jumlah;
+        long[] time = new long[10];
         
         jumlah = H.getJumlahHadis(imam);
-        for (int i=2330;i<jumlah;i++) {
+        int x = 0;
+        int y = 0;
+        
+        for (int i=3150;i<3200;i++) {
             System.out.println(i+"/"+jumlah);
             
             //Ambil term-term dari hadis
@@ -31,27 +35,53 @@ public class BuatIndeks {
             
             //Insert term ke DB
             for (int j=0;j<output.size();j++) {
-                if (DB.find(output.get(j))) {
+                long start = System.currentTimeMillis();
+                boolean a = DB.find(output.get(j));
+                long int1 = System.currentTimeMillis();
+                time[0] += (int1-start);
+                if (a) {
+                    x++;
                     //Update existing
-                    if (DB.findId(output.get(j), no_hadis)) {
+                    boolean b = DB.findId(output.get(j), no_hadis);
+                    long int2 = System.currentTimeMillis();
+                    time[1] += (int2-int1);
+                    
+                    if (b) {
                         DB.addId(no_hadis, output.get(j));
+                        long int3 = System.currentTimeMillis();
+                        time[3] += (int3-int2);
                     } else {
                         DB.update(no_hadis, output.get(j));
+                        long int4 = System.currentTimeMillis();
+                        time[4] += (int4-int2);
                     }
                 } else {
+                    y++;
                     //Insert new
                     DB.insert(no_hadis, output.get(j));
+                    long int3 = System.currentTimeMillis();
+                    time[2] += (int3-int1);
                 }
             }
             
             //Insert document length
             DB.insertDocLength(no_hadis, output.size());
         }
+        DB.closeConnection();
+        
+        System.out.println("Find term : "+time[0]);
+        System.out.println("Find id in term : "+time[1]);
+        System.out.println("Insert new : "+time[2]);
+        System.out.println("Add Id : "+time[3]);
+        System.out.println("Update df & Add id : "+time[4]);
+        
+        System.out.println("x : "+x);
+        System.out.println("y : "+y);
     }
     
     public static void main (String args[]) {
         BuatIndeks I = new BuatIndeks();
-        String imam = "darimi";
+        String imam = "tirmidzi";
         I.buatIndeks(imam);
     }
     

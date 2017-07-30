@@ -13,21 +13,16 @@ import org.bson.Document;
 public class Database {
 
     private final MongoCollection<Document> coll_indeks;
-    private final MongoCollection<Document> coll_okapi;
     private final MongoCollection<Document> coll_dl;
-    private final MongoCollection<Document> coll_bim;
-    private final MongoCollection<Document> coll_coba;
-    private final MongoCollection<Document> coll_kitab;
-    private final MongoCollection<Document> coll_bab;
+    private MongoClient client;
 
     public Database() {
         coll_indeks = connect("indeks");
-        coll_okapi = connect("okapi");
         coll_dl = connect("doclength");
-        coll_bim = connect("bim");
-        coll_coba = connect("coba");
-        coll_kitab = connect("kitab");
-        coll_bab = connect("bab");
+    }
+    
+    public void closeConnection() {
+        client.close();
     }
 
     private MongoCollection<Document> connect(String nama) {
@@ -35,7 +30,7 @@ public class Database {
         MongoCollection<Document> coll = null;
 
         try {
-            MongoClient client = new MongoClient();
+            client = new MongoClient();
             MongoDatabase db = client.getDatabase("test");
             coll = db.getCollection(nama);
             System.out.println("Connected");
@@ -52,7 +47,7 @@ public class Database {
     }
 
     public boolean findId(String term, String id) {
-        long L = coll_indeks.count(Document.parse("{\"nama\" : \"" + term + "\", \"id\" : \"" + id + "\"}"));
+        long L = coll_indeks.count(new Document("nama", term).append("id", id));
         return L != 0;
     }
 

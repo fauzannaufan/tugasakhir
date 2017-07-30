@@ -1,21 +1,19 @@
-package rf;
+package search;
 
-import backend.Database;
-import backend.ProsesTeks;
-import backend.RelevanceFeedback;
+import backend.SearchHadis;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.json.simple.JSONObject;
 
 /**
  *
  * @author M. Fauzan Naufan
  */
-public class calculateRf extends HttpServlet {
+public class Search extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -28,35 +26,21 @@ public class calculateRf extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
+        response.setContentType("application/json;charset=UTF-8");
         
         String kueri = request.getParameter("kueri");
         String skema = request.getParameter("skema");
         
-        RelevanceFeedback RF = new RelevanceFeedback();
-        Database DB = new Database();
-        ProsesTeks PT = new ProsesTeks();
-        ArrayList<String> p_kueri = PT.prosesKueri(kueri);
+        JSONObject hasil = new JSONObject();
         
-        ArrayList<String> VR = DB.getVR(skema, p_kueri);
-        ArrayList<String> VNR = DB.getVNR(skema, p_kueri);
-        
-        System.out.println(VNR);
-        
-        String a = "";
-        if (VNR.size() > 0 && VR.size() > 0) {
-            if (skema.equals("bim")) {
-                ArrayList<Double> pt = DB.getPt(p_kueri);
-                ArrayList<Double> ut = DB.getUt(p_kueri);
-                RF.calculateProbBIM(kueri, VR, VNR, pt, ut);
-                a = "1";
-            } else if (skema.equals("okapi")) {
-                RF.calculateRfOkapi(kueri, VR, VNR);
-                a = "2";
-            }
+        if (skema.equals("bim")) {
+            hasil  = new SearchHadis().searchBIM(kueri);
+        } else if (skema.contains("okapi")) {
+            hasil = new SearchHadis().searchOkapi(kueri);
         }
+        
         try (PrintWriter out = response.getWriter()) {
-            out.println(a);
+            out.println(hasil);
         }
     }
 
