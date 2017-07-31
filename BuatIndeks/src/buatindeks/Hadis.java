@@ -1,19 +1,23 @@
 package buatindeks;
 
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import java.util.ArrayList;
+import org.bson.Document;
 
 /**
  *
  * @author M. Fauzan Naufan
  */
 public class Hadis {
+    
+    private ArrayList<Document> data_hadis;
+    
+    public Hadis() {}
+    
+    public Hadis(String imam) {
+        Database DB = new Database();
+        data_hadis = DB.getDataHadis(imam);
+        DB.closeConnection();
+    }
     
     public String setNomorHadis(String imam, String nomor) {
         String no_hadis = "";
@@ -41,41 +45,16 @@ public class Hadis {
     }
     
     public int getJumlahHadis(String imam) {
-        int size = -1;
-        
-        try {
-            JSONParser parser = new JSONParser();
-            String filename = "E:/Semester 8/TA/TA 1/hadits-data/data/"+imam+".json";
-            
-            Object obj = parser.parse(new FileReader(filename));
-            JSONArray arr = (JSONArray) obj;
-            size = arr.size();
-        } catch (IOException | ParseException ex) {
-            Logger.getLogger(Hadis.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
-        return size;
+        return data_hadis.size();
     }
     
     public String getTeksHadis(String imam, int idx) {
         
-        String teks = "";
+        String teks;
         
-        try {
-            JSONParser parser = new JSONParser();
-            String filename = "E:/Semester 8/TA/TA 1/hadits-data/data/"+imam+".json";
-            
-            Object obj = parser.parse(new FileReader(filename));
-            JSONArray arr = (JSONArray) obj;
-            
-            JSONObject obj2 = (JSONObject)arr.get(idx);
-            String indo = obj2.get("indo").toString();
-            String no_hadis = setNomorHadis(imam,obj2.get("haditsId").toString());
-            teks = no_hadis+"<"+indo;
-            
-        } catch (IOException | ParseException ex) {
-            Logger.getLogger(Hadis.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        String indo = data_hadis.get(idx).get("indo").toString();
+        String no_hadis = setNomorHadis(imam, data_hadis.get(idx).get("haditsId").toString());
+        teks = no_hadis+"<"+indo;
         
         return teks;
     }

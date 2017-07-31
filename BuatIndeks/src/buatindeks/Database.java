@@ -3,6 +3,7 @@ package buatindeks;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import java.util.ArrayList;
 import java.util.Arrays;
 import org.bson.Document;
 
@@ -13,11 +14,13 @@ import org.bson.Document;
 public class Database {
 
     private final MongoCollection<Document> coll_indeks;
+    private final MongoCollection<Document> coll_hadis;
     private final MongoCollection<Document> coll_dl;
     private MongoClient client;
 
     public Database() {
         coll_indeks = connect("indeks");
+        coll_hadis = connect("hadis");
         coll_dl = connect("doclength");
     }
     
@@ -31,7 +34,7 @@ public class Database {
 
         try {
             client = new MongoClient();
-            MongoDatabase db = client.getDatabase("test");
+            MongoDatabase db = client.getDatabase("carihadis");
             coll = db.getCollection(nama);
             System.out.println("Connected");
         } catch (Exception e) {
@@ -39,6 +42,14 @@ public class Database {
         }
 
         return coll;
+    }
+    
+    public ArrayList<Document> getDataHadis(String imam) {
+        ArrayList<Document> arr = coll_hadis.find(new Document("imam", imam))
+                .projection(new Document("indo", 1)
+                        .append("haditsId", 1))
+                .into(new ArrayList<>());
+        return arr;
     }
 
     public boolean find(String term) {
