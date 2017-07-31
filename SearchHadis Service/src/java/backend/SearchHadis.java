@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.bson.Document;
 
 /**
  *
@@ -17,13 +16,13 @@ import org.bson.Document;
  */
 public class SearchHadis {
 
-    public int getTftd(ArrayList<String> allIds, String id) {
+    private int getTftd(ArrayList<String> allIds, String id) {
         int tftd = 0;
         tftd = allIds.stream().filter((s) -> (s.equals(id))).map((_item) -> 1).reduce(tftd, Integer::sum);
         return tftd;
     }
 
-    public double countOkapi(double Lave, int tftd, int Ld) {
+    private double countOkapi(double Lave, int tftd, int Ld) {
         double k1 = 1.5;
         double b = 0.75;
 
@@ -32,7 +31,34 @@ public class SearchHadis {
         return hasil;
     }
 
-    public JSONObject sortResulttoJSON(Map map, double[] pt, double[] ut) {
+    private String createSnippet(String indo) {
+        int i1;
+        int i2;
+        
+        if (indo.toLowerCase().contains("nabi")) {
+            i1 = indo.toLowerCase().indexOf("nabi");
+        } else {
+            i1 = indo.length();
+        }
+        
+        if (indo.toLowerCase().contains("rasulullah")) {
+            i2 = indo.toLowerCase().indexOf("rasulullah");
+        } else {
+            i2 = indo.length();
+        }
+        
+        int i;
+        if (i1 == 0 && i2 == 0) {return "";}
+        if (i1 < i2) {i = i1;} else {i=i2;}
+        
+        if (i+300 > indo.length()) {
+            return indo.substring(i);
+        } else {
+            return indo.substring(i,i+300);
+        }
+    }
+
+    private JSONObject sortResulttoJSON(String kueri, Map map, double[] pt, double[] ut) {
         Map<String, Double> result = new LinkedHashMap<>();
         List<Map.Entry<String, Double>> list;
         List<Map.Entry<String, Double>> list2;
@@ -59,6 +85,7 @@ public class SearchHadis {
             obj2.put("imam", arr2.get(0));
             obj2.put("haditsId", arr2.get(1));
             obj2.put("indo", arr2.get(2));
+            obj2.put("snippet", createSnippet(arr2.get(2)));
             arr.add(obj2);
         }
 
@@ -85,19 +112,20 @@ public class SearchHadis {
         //Inisialisasi kelas
         ProsesTeks PT = new ProsesTeks();
         Database DB = new Database();
-        Hadis H = new Hadis();
 
         //Inisialisasi variabel
         int[] dfs;
         int term_no;
         ArrayList<ArrayList<String>> ids = new ArrayList<>();
         Map<String, Double> map = new HashMap<>();
-        Document RF;
+        Map<String, Double> resultmap = new HashMap<>();
+        int N = DB.getN();
 
-        //Kueri ke DB
+        //Proses Kueri
         ArrayList<String> p_kueri = PT.prosesKueri(kueri);
         term_no = p_kueri.size();
-        RF = DB.getProbBIM(p_kueri);
+
+        //Get DF dan Kemunculan Term
         dfs = new int[term_no];
         for (int i = 0; i < p_kueri.size(); i++) {
             dfs[i] = DB.getDf(p_kueri.get(i));
@@ -107,17 +135,16 @@ public class SearchHadis {
         //Menghitung pt dan ut
         double[] pt = new double[term_no];
         double[] ut = new double[term_no];
-        int N = DB.getN();
         for (int i = 0; i < term_no; i++) {
-            if (RF == null) {
-                pt[i] = ((double) dfs[i] / N * 2 / 3) + ((double) 1 / 3);
-                ut[i] = (double) dfs[i] / N;
-            } else {
+            //if (RF == null) {
+            pt[i] = ((double) dfs[i] / N * 2 / 3) + ((double) 1 / 3);
+            ut[i] = (double) dfs[i] / N;
+            /*} else {
                 ArrayList<Double> arr_pt = (ArrayList<Double>) RF.get("pt");
                 ArrayList<Double> arr_ut = (ArrayList<Double>) RF.get("ut");
                 pt[i] = (double) arr_pt.get(i);
                 ut[i] = (double) arr_ut.get(i);
-            }
+            }*/
         }
 
         //Menghitung nilai dokumen
@@ -129,33 +156,36 @@ public class SearchHadis {
                 map.put(id, map.getOrDefault(id, 0.0) + a + b);
             }
         }
-        
-        map.entrySet().stream().filter((entry) -> (entry.getValue() <= 0)).forEach((entry) -> {
-            map.remove(entry.getKey());
+
+        //Menghilangkan dokumen dengan skor <= 0
+        map.entrySet().stream().filter((entry) -> (entry.getValue() >= 0)).forEach((entry) -> {
+            resultmap.put(entry.getKey(), entry.getValue());
         });
-        
-        return sortResulttoJSON(map, pt, ut);
+
+        return sortResulttoJSON(kueri, resultmap, pt, ut);
     }
 
     public JSONObject searchOkapi(String kueri) {
         //Inisialisasi kelas
         ProsesTeks PT = new ProsesTeks();
         Database DB = new Database();
-        Hadis H = new Hadis();
 
         //Inisialisasi variabel
         ArrayList<ArrayList<String>> ids = new ArrayList<>();
         Map<String, Double> map = new HashMap<>();
-        int N = DB.getN();
-        double Lave = DB.getDocAvgLength();
         ArrayList<String> allIds;
+        //ArrayList<Double> RF;
+
+        //Get Doc Length, Doc Avg Length, N
         Map<String, Integer> allDocLength = DB.getAllDocLength();
-        ArrayList<Double> RF;
+        double Lave = DB.getDocAvgLength();
+        int N = DB.getN();
+
+        //Proses Kueri
+        ArrayList<String> p_kueri = PT.prosesKueri(kueri);
 
         //Kueri ke DB
-        ArrayList<String> p_kueri = PT.prosesKueri(kueri);
-        System.out.println(p_kueri);
-        RF = DB.getRfOkapi(p_kueri);
+        //RF = DB.getRfOkapi(p_kueri);
         for (int i = 0; i < p_kueri.size(); i++) {
             ids.add(DB.getIds(p_kueri.get(i)));
         }
@@ -166,19 +196,21 @@ public class SearchHadis {
             allIds = DB.getAllIds(p_kueri.get(i));
             for (int j = 0; j < ids.get(i).size(); j++) {
                 String id = ids.get(i).get(j);
+
                 int tftd = getTftd(allIds, id);
                 int Ld = allDocLength.get(id);
+
                 double a;
-                if (RF == null) {
-                    a = Math.log10((double) N / df * countOkapi(Lave, tftd, Ld));
-                } else {
+                //if (RF == null) {
+                a = Math.log10((double) N / df * countOkapi(Lave, tftd, Ld));
+                /*} else {
                     a = Math.log10(RF.get(i) * countOkapi(Lave, tftd, Ld));
-                }
+                }*/
                 map.put(id, map.getOrDefault(id, 0.0) + a);
             }
         }
-        
-        return sortResulttoJSON(map, null, null);
+
+        return sortResulttoJSON(kueri, map, null, null);
     }
 
 }

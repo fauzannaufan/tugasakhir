@@ -26,7 +26,7 @@ public class Database {
     private final MongoCollection<Document> coll_okapi;
     private final MongoCollection<Document> coll_dl;
     private final MongoCollection<Document> coll_bim;
-    private final MongoCollection<Document> coll_coba;
+    private final MongoCollection<Document> coll_hadis;
     private final MongoCollection<Document> coll_kitab;
     private final MongoCollection<Document> coll_bab;
 
@@ -37,7 +37,7 @@ public class Database {
         coll_okapi = connect("okapi");
         coll_dl = connect("doclength");
         coll_bim = connect("bim");
-        coll_coba = connect("coba");
+        coll_hadis = connect("hadis");
         coll_kitab = connect("kitab");
         coll_bab = connect("bab");
     }
@@ -52,7 +52,7 @@ public class Database {
 
         try {
             client = new MongoClient();
-            MongoDatabase db = client.getDatabase("test");
+            MongoDatabase db = client.getDatabase("carihadis");
             coll = db.getCollection(nama);
             System.out.println("Connected");
         } catch (Exception e) {
@@ -68,7 +68,7 @@ public class Database {
     }
 
     public boolean findId(String term, String id) {
-        long L = coll_indeks.count(Document.parse("{\"nama\" : \"" + term + "\", \"id\" : \"" + id + "\"}"));
+        long L = coll_indeks.count(new Document("nama", term).append("id", id));
         return L != 0;
     }
 
@@ -208,7 +208,7 @@ public class Database {
         Hadis H = new Hadis();
         ArrayList<String> arr = new ArrayList<>();
 
-        Document doc = coll_coba.find(new Document("imam", H.getImam(id))
+        Document doc = coll_hadis.find(new Document("imam", H.getImam(id))
                 .append("haditsId", H.getIdHadis(id)))
                 .projection(new Document("_id", 0)
                         .append("indo", 1)

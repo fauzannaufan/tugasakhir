@@ -41,8 +41,6 @@ public class calculateRf extends HttpServlet {
         ArrayList<String> VR = DB.getVR(skema, p_kueri);
         ArrayList<String> VNR = DB.getVNR(skema, p_kueri);
         
-        System.out.println(VNR);
-        
         String a = "";
         if (VNR.size() > 0 && VR.size() > 0) {
             if (skema.equals("bim")) {

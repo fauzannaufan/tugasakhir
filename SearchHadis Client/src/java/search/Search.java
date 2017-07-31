@@ -3,7 +3,6 @@ package search;
 import com.sun.xml.ws.util.StringUtils;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
@@ -25,18 +24,6 @@ import org.json.simple.parser.ParseException;
  * @author M. Fauzan Naufan
  */
 public class Search extends HttpServlet {
-
-    private void hitungRF(String skema, String kueri) {
-        //Formulasi Relevance Feedback
-        Form form = new Form();
-        Client client = ClientBuilder.newClient();
-        String url = "http://localhost:8080/SearchHadis_Service/calculateRf";
-
-        form.param("kueri", kueri);
-        form.param("skema", skema);
-        client.target(url).request(MediaType.TEXT_HTML)
-                .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED), String.class);
-    }
 
     private JSONObject searchHadis(String kueri, String skema) {
         Form form = new Form();
@@ -60,23 +47,6 @@ public class Search extends HttpServlet {
         return obj;
     }
 
-    private void postHasiltoDB(String skema, String kueri, ArrayList<String> hasil, Object pt, Object ut) {
-        JSONObject obj = new JSONObject();
-        obj.put("skema", skema);
-        obj.put("kueri", kueri);
-        obj.put("ids", hasil);
-        obj.put("pt", pt);
-        obj.put("ut", ut);
-
-        Form form = new Form();
-        form.param("param", obj.toJSONString());
-
-        String url = "http://localhost:8080/SearchHadis_Service/addRelevantDocs";
-        Client client = ClientBuilder.newClient();
-        client.target(url).request(MediaType.TEXT_HTML)
-                .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED), String.class);
-    }
-
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -90,14 +60,13 @@ public class Search extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
 
-        ArrayList<String> result_key = new ArrayList<>();
-
         String skema = request.getParameter("skema");
         String kueri = request.getParameter("kueri");
 
-        hitungRF(skema, kueri);
+        //Cari hadis
         JSONObject obj = searchHadis(kueri, skema);
         JSONArray arr = (JSONArray) obj.get("hasil");
+        int total_page = arr.size() / 10;
 
         try (PrintWriter out = response.getWriter()) {
             //Bagian head, dan title
@@ -139,8 +108,6 @@ public class Search extends HttpServlet {
             }
             out.println("           </form></div><br>\n");
 
-            int total_page = arr.size() / 10;
-            
             //Bagian hasil pencarian
             if (arr.isEmpty()) {
                 out.println("Maaf, hadis tidak ditemukan.");
@@ -152,28 +119,28 @@ public class Search extends HttpServlet {
                         out.println("<div id=\"page-" + (i + 1) + "\" >\n");
                     }
                     int j = 0;
-                    while (j < 10 && i*10+j < arr.size()) {
+                    while (j < 10 && i * 10 + j < arr.size()) {
                         JSONObject obj2 = (JSONObject) arr.get(i * 10 + j);
-                        result_key.add(obj2.get("key").toString());
                         String imam = StringUtils.capitalize(obj2.get("imam").toString());
                         out.println("<h3 class=\"topic\"><a href=\"hadis.jsp?id="
                                 + obj2.get("key").toString() + "&kueri=" + kueri + "&skema=" + skema + "\">"
                                 + "HR. " + imam + " No. " + obj2.get("haditsId").toString()
                                 + "</a></h3>");
-                        out.println("<p class=\"indo\">"+obj2.get("indo").toString()+"</p>");
+                        out.println("<p class=\"indo\">" + obj2.get("snippet").toString() + "</p>");
                         j++;
                     }
                     out.println("</div>\n");
                 }
+
+                //Bagian nomor halaman
                 out.println("<div class=\"pagination\">\n"
                         + "  <a>&laquo;</a>\n");
                 out.println("  <a id=\"pagination-1\" class=\"active\" onclick=\"open_page(1)\">1</a>\n");
-                for (int i=1;i<total_page;i++) {
-                    out.println("  <a id=\"pagination-"+(i+1)+"\" onclick=\"open_page("+(i+1)+")\">"+(i+1)+"</a>\n");
+                for (int i = 1; i < total_page; i++) {
+                    out.println("  <a id=\"pagination-" + (i + 1) + "\" onclick=\"open_page(" + (i + 1) + ")\">" + (i + 1) + "</a>\n");
                 }
                 out.println("  <a>&raquo;</a>\n"
                         + "</div>\n");
-                postHasiltoDB(skema, kueri, result_key, obj.get("pt"), obj.get("ut"));
             }
             out.println("</div>\n"
                     + "    </body>\n"
