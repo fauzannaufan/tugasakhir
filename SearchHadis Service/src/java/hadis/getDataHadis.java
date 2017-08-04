@@ -36,6 +36,8 @@ public class getDataHadis extends HttpServlet {
         JSONObject obj = new JSONObject();
         JSONObject obj2 = new JSONObject();
         JSONArray arr2 = new JSONArray();
+        
+        DB.closeConnection();
 
         obj.put("imam", arr.get(0));
         obj.put("haditsId", arr.get(1));

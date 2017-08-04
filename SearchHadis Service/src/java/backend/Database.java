@@ -9,8 +9,10 @@ import static com.mongodb.client.model.Accumulators.avg;
 import static com.mongodb.client.model.Aggregates.group;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import org.bson.Document;
 import org.json.simple.JSONArray;
@@ -26,6 +28,7 @@ public class Database {
     private final MongoCollection<Document> coll_okapi;
     private final MongoCollection<Document> coll_dl;
     private final MongoCollection<Document> coll_bim;
+    private final MongoCollection<Document> coll_history;
     private final MongoCollection<Document> coll_hadis;
     private final MongoCollection<Document> coll_kitab;
     private final MongoCollection<Document> coll_bab;
@@ -37,6 +40,7 @@ public class Database {
         coll_okapi = connect("okapi");
         coll_dl = connect("doclength");
         coll_bim = connect("bim");
+        coll_history = connect("history");
         coll_hadis = connect("hadis");
         coll_kitab = connect("kitab");
         coll_bab = connect("bab");
@@ -166,38 +170,39 @@ public class Database {
         return Double.parseDouble(avg.get("avgLength").toString());
     }
 
-    public Document getProbBIM(ArrayList<String> terms) {
-        ArrayList<Document> arr = coll_bim.find(new Document("term", terms))
+    public Document getProbBIM(ArrayList<String> terms, String sid) {
+        Document doc = coll_bim.find(new Document("term", terms)
+                .append("sid", sid))
+                .sort(new Document("date", -1))
                 .projection(new Document("_id", 0)
-                        .append("pt", 1).append("ut", 1)).into(new ArrayList<Document>());
-
-        if (arr.size() > 0) {
-            Document doc = arr.get(0);
-            return doc;
-        } else {
-            return null;
-        }
+                        .append("pt", 1).append("ut", 1))
+                .first();
+        
+        return doc;
     }
 
-    public void updateBIM(ArrayList<String> terms, ArrayList<Double> pt, ArrayList<Double> ut) {
-        Document doc = new Document("$set", new Document("pt", pt).append("ut", ut));
+    public void updateBIM(ArrayList<String> terms, ArrayList<Double> pt, ArrayList<Double> ut, String sid) {
+        Document doc = new Document("term", terms).append("sid", sid).append("pt", pt).append("ut", ut).append("date", new Date());
 
-        coll_bim.updateOne(new Document("term", terms), doc);
+        coll_bim.insertOne(doc);
     }
 
-    public void updateOkapi(ArrayList<String> terms, ArrayList<Double> rf) {
-        Document doc = new Document("$set", new Document("rf", rf));
+    public void updateOkapi(ArrayList<String> terms, ArrayList<Double> rf, String sid) {
+        Document doc = new Document("term", terms).append("sid", sid).append("rf", rf).append("date", new Date());
 
-        coll_okapi.updateOne(new Document("term", terms), doc);
+        coll_okapi.insertOne(doc);
     }
 
-    public ArrayList<Double> getRfOkapi(ArrayList<String> terms) {
-        ArrayList<Document> arr = coll_okapi.find(new Document("term", terms))
+    public ArrayList<Double> getRfOkapi(ArrayList<String> terms, String sid) {
+        Document doc = coll_okapi.find(new Document("term", terms)
+                .append("sid", sid))
+                .sort(new Document("date", -1))
                 .projection(new Document("_id", 0)
-                        .append("rf", 1)).into(new ArrayList<Document>());
-
-        if (arr.size() > 0) {
-            ArrayList<Double> rf = (ArrayList<Double>) arr.get(0).get("rf");
+                        .append("rf", 1))
+                .first();
+        
+        if (doc != null) {
+            ArrayList<Double> rf = (ArrayList<Double>) doc.get("rf");
             return rf;
         } else {
             return null;
@@ -272,57 +277,45 @@ public class Database {
         return doc.get("judul").toString();
     }
 
-    public void addRelevantDocs(String skema, ArrayList<String> terms, ArrayList<String> ids, ArrayList<Double> pt, ArrayList<Double> ut) {
+    public void addRelevantDocs(String skema, String sid, ArrayList<String> terms, ArrayList<String> ids, ArrayList<Double> pt, ArrayList<Double> ut) {
         Document doc;
-        if (pt.isEmpty()) {
-            doc = new Document("term", terms).append("VNR", ids);
+        List<String> ids2 = new ArrayList<>();
+        if (ids.size() >= 10) {
+            ids2 = ids.subList(0, 10);
         } else {
-            doc = new Document("term", terms).append("VNR", ids).append("pt_lama", pt).append("ut_lama", ut);
+            ids2.addAll(ids);
+        }
+        if (pt.isEmpty()) {
+            doc = new Document("term", terms).append("SID", sid).append("skema", skema).append("VNR", ids2);
+        } else {
+            doc = new Document("term", terms).append("SID", sid).append("skema", skema).append("VNR", ids2).append("pt_lama", pt).append("ut_lama", ut);
         }
 
-        if (skema.equals("bim")) {
-            long L = coll_bim.count(new Document("term", terms));
-            if (L == 0) {
-                coll_bim.insertOne(doc);
-            } else {
-                coll_bim.replaceOne(new Document("term", terms), doc);
-            }
-        } else if (skema.equals("okapi")) {
-            long L = coll_okapi.count(new Document("term", terms));
-            if (L == 0) {
-                coll_okapi.insertOne(doc);
-            } else {
-                coll_okapi.replaceOne(new Document("term", terms), doc);
-            }
+        long L = coll_history.count(new Document("term", terms).append("skema", skema).append("SID", sid));
+        if (L == 0) {
+            coll_history.insertOne(doc);
+        } else {
+            coll_history.replaceOne(new Document("term", terms), doc);
         }
 
     }
 
-    public void setRelevant(String skema, ArrayList<String> terms, String id) {
+    public void setRelevant(String skema, ArrayList<String> terms, String sid, String id) {
 
         Document doc1 = new Document("$push", new Document("VR", id));
         Document doc2 = new Document("$pull", new Document("VNR", id));
 
-        if (skema.equals("bim")) {
-            coll_bim.updateOne(new Document().append("term", terms), doc1);
-            coll_bim.updateOne(new Document().append("term", terms), doc2);
-        } else if (skema.equals("okapi")) {
-            coll_okapi.updateOne(new Document().append("term", terms), doc1);
-            coll_okapi.updateOne(new Document().append("term", terms), doc2);
-        }
+        coll_history.updateOne(new Document("term", terms).append("SID", sid).append("skema", skema), doc1);
+        coll_history.updateOne(new Document("term", terms).append("SID", sid).append("skema", skema), doc2);
     }
 
-    public ArrayList<String> getVR(String skema, ArrayList<String> terms) {
-        ArrayList<Document> arrays = new ArrayList<>();
-        if (skema.equals("bim")) {
-            arrays = coll_bim.find(new Document("term", terms))
-                    .projection(new Document("VR", 1)
-                            .append("_id", 0)).into(new ArrayList<Document>());
-        } else if (skema.equals("okapi")) {
-            arrays = coll_okapi.find(new Document("term", terms))
-                    .projection(new Document("VR", 1)
-                            .append("_id", 0)).into(new ArrayList<Document>());
-        }
+    public ArrayList<String> getVR(String skema, String sid, ArrayList<String> terms) {
+        ArrayList<Document> arrays = coll_history.find(new Document("term", terms)
+                .append("SID", sid)
+                .append("skema", skema))
+                .projection(new Document("VR", 1)
+                        .append("_id", 0))
+                .into(new ArrayList<Document>());
 
         if (arrays.size() > 0) {
             ArrayList<String> ids = (ArrayList<String>) arrays.get(0).get("VR");
@@ -336,17 +329,13 @@ public class Database {
         }
     }
 
-    public ArrayList<String> getVNR(String skema, ArrayList<String> terms) {
-        ArrayList<Document> arrays = new ArrayList<>();
-        if (skema.equals("bim")) {
-            arrays = coll_bim.find(new Document("term", terms))
-                    .projection(new Document("VNR", 1)
-                            .append("_id", 0)).into(new ArrayList<Document>());
-        } else if (skema.equals("okapi")) {
-            arrays = coll_okapi.find(new Document("term", terms))
-                    .projection(new Document("VNR", 1)
-                            .append("_id", 0)).into(new ArrayList<Document>());
-        }
+    public ArrayList<String> getVNR(String skema, String sid, ArrayList<String> terms) {
+        ArrayList<Document> arrays = coll_history.find(new Document("term", terms)
+                .append("SID", sid)
+                .append("skema", skema))
+                .projection(new Document("VNR", 1)
+                        .append("_id", 0))
+                .into(new ArrayList<Document>());
 
         if (arrays.size() > 0) {
             ArrayList<String> ids = (ArrayList<String>) arrays.get(0).get("VNR");
@@ -360,10 +349,13 @@ public class Database {
         }
     }
 
-    public ArrayList<Double> getPt(ArrayList<String> terms) {
-        ArrayList<Document> arr = coll_bim.find(new Document("term", terms))
+    public ArrayList<Double> getPt(ArrayList<String> terms, String sid) {
+        ArrayList<Document> arr = coll_history.find(new Document("term", terms)
+                .append("SID", sid)
+                .append("skema", "bim"))
                 .projection(new Document("_id", 0)
-                        .append("pt_lama", 1)).into(new ArrayList<Document>());
+                        .append("pt_lama", 1))
+                .into(new ArrayList<Document>());
 
         if (arr.size() > 0) {
             ArrayList<Double> pt = (ArrayList<Double>) arr.get(0).get("pt_lama");
@@ -373,10 +365,13 @@ public class Database {
         }
     }
 
-    public ArrayList<Double> getUt(ArrayList<String> terms) {
-        ArrayList<Document> arr = coll_bim.find(new Document("term", terms))
+    public ArrayList<Double> getUt(ArrayList<String> terms, String sid) {
+        ArrayList<Document> arr = coll_history.find(new Document("term", terms)
+                .append("SID", sid)
+                .append("skema", "bim"))
                 .projection(new Document("_id", 0)
-                        .append("ut_lama", 1)).into(new ArrayList<Document>());
+                        .append("ut_lama", 1))
+                .into(new ArrayList<Document>());
 
         if (arr.size() > 0) {
             ArrayList<Double> ut = (ArrayList<Double>) arr.get(0).get("ut_lama");

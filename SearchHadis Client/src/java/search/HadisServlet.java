@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -25,14 +26,12 @@ import org.json.simple.parser.ParseException;
  */
 public class HadisServlet extends HttpServlet {
 
-    private void setRelevant(String kueri, String skema, String id) {
-        JSONObject obj = new JSONObject();
-        obj.put("skema", skema);
-        obj.put("kueri", kueri);
-        obj.put("id", id);
-
+    private void setRelevant(String kueri, String skema, String sid, String id) {
         Form form = new Form();
-        form.param("param", obj.toJSONString());
+        form.param("skema", skema);
+        form.param("kueri", kueri);
+        form.param("sid", sid);
+        form.param("id", id);
 
         String url = "http://localhost:8080/SearchHadis_Service/setRelevant";
         Client client = ClientBuilder.newClient();
@@ -64,10 +63,31 @@ public class HadisServlet extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String id = request.getParameter("id");
-        String kueri = request.getParameter("kueri");
-        String skema = request.getParameter("skema");
+        String kueri = "";
+        String skema = "";
+        String sid = "";
+        Cookie[] cookies = request.getCookies();
+        
+        int x = 0;
+        while (x < cookies.length) {
+            String nama = cookies[x].getName();
+            switch (nama) {
+                case "kueri" :
+                    kueri = cookies[x].getValue();
+                    break;
+                case "sid" :
+                    sid = cookies[x].getValue();
+                    break;
+                case "skema" :
+                    skema = cookies[x].getValue();
+                    break;
+                default :
+                    break;
+            }
+            x++;
+        }
 
-        setRelevant(kueri, skema, id);
+        setRelevant(kueri, skema, sid, id);
         String s = getDataHadis(id);
 
         JSONObject obj = new JSONObject();
@@ -104,7 +124,7 @@ public class HadisServlet extends HttpServlet {
             for (int i = 0; i < related.size(); i++) {
                 JSONObject obj4 = (JSONObject) related.get(i);
                 String imam2 = StringUtils.capitalize(obj4.get("imam").toString());
-                out.println("<a href=\"hadis.jsp?id="+obj4.get("key").toString()+"&kueri="+kueri+"&skema="+skema+"\">");
+                out.println("<a href=\"hadis.jsp?id="+obj4.get("key").toString()+"\">");
                 out.println("<b>HR. "+imam2+" No. "+obj4.get("haditsId").toString()+"</b>\n");
                 out.println("</a><br>");
             }

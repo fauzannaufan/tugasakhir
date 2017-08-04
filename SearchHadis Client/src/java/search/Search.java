@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -25,26 +26,19 @@ import org.json.simple.parser.ParseException;
  */
 public class Search extends HttpServlet {
 
-    private JSONObject searchHadis(String kueri, String skema) {
+    private String searchHadis(String kueri, String skema, String sid) {
         Form form = new Form();
         Client client = ClientBuilder.newClient();
-        JSONParser parser = new JSONParser();
-        JSONObject obj = new JSONObject();
 
         form.param("kueri", kueri);
         form.param("skema", skema);
+        form.param("sid", sid);
         String url = "http://localhost:8080/SearchHadis_Service/Search";
 
         String result = client.target(url).request(MediaType.APPLICATION_JSON)
                 .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED), String.class);
 
-        try {
-            obj = (JSONObject) parser.parse(result);
-        } catch (ParseException ex) {
-            Logger.getLogger(Search.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-        return obj;
+        return result;
     }
 
     /**
@@ -62,11 +56,46 @@ public class Search extends HttpServlet {
 
         String skema = request.getParameter("skema");
         String kueri = request.getParameter("kueri");
+        Cookie[] cookies = request.getCookies();
+        boolean notset = false;
+        String sid = null;
+
+        if (cookies != null) {
+            int x = 0;
+            while (x < cookies.length && !cookies[x].getName().equals("sid")) {
+                x++;
+            }
+            if (x < cookies.length) {
+                sid = cookies[x].getValue();
+            } else {
+                notset = true;
+            }
+        }
 
         //Cari hadis
-        JSONObject obj = searchHadis(kueri, skema);
+        String result = searchHadis(kueri, skema, sid);
+        JSONParser parser = new JSONParser();
+        JSONObject obj = new JSONObject();
+
+        int idx = result.indexOf("|");
+
+        if (notset) {
+            String sid2 = result.substring(0, idx);
+            Cookie c_sid = new Cookie("sid", sid2);
+            response.addCookie(c_sid);
+        }
+        response.addCookie(new Cookie("kueri", kueri));
+        response.addCookie(new Cookie("skema", skema));
+
+        try {
+            obj = (JSONObject) parser.parse(result.substring(idx + 1));
+        } catch (ParseException ex) {
+            Logger.getLogger(Search.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
         JSONArray arr = (JSONArray) obj.get("hasil");
-        int total_page = arr.size() / 10;
+        Double tp = Math.ceil((double) arr.size() / 10);
+        int total_page = tp.intValue();
 
         try (PrintWriter out = response.getWriter()) {
             //Bagian head, dan title
@@ -122,8 +151,7 @@ public class Search extends HttpServlet {
                     while (j < 10 && i * 10 + j < arr.size()) {
                         JSONObject obj2 = (JSONObject) arr.get(i * 10 + j);
                         String imam = StringUtils.capitalize(obj2.get("imam").toString());
-                        out.println("<h3 class=\"topic\"><a href=\"hadis.jsp?id="
-                                + obj2.get("key").toString() + "&kueri=" + kueri + "&skema=" + skema + "\">"
+                        out.println("<h3 class=\"topic\"><a href=\"hadis.jsp?id=" + obj2.get("key").toString() + "\">"
                                 + "HR. " + imam + " No. " + obj2.get("haditsId").toString()
                                 + "</a></h3>");
                         out.println("<p class=\"indo\">" + obj2.get("snippet").toString() + "</p>");

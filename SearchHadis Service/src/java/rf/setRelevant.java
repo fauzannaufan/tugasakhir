@@ -5,15 +5,10 @@ import backend.ProsesTeks;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 /**
  *
@@ -34,23 +29,17 @@ public class setRelevant extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         
-        JSONObject obj = new JSONObject();
-        JSONParser parser = new JSONParser();
         ProsesTeks PT = new ProsesTeks();
         
-        try {
-            obj = (JSONObject) parser.parse(request.getParameter("param"));
-        } catch (ParseException ex) {
-            Logger.getLogger(setRelevant.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
-        String skema = obj.get("skema").toString();
-        String kueri = obj.get("kueri").toString();
-        String id = obj.get("id").toString();
+        String skema = request.getParameter("skema");
+        String kueri = request.getParameter("kueri");
+        String sid = request.getParameter("sid");
+        String id = request.getParameter("id");
         ArrayList<String> terms = PT.prosesKueri(kueri);
         
         Database DB = new Database();
-        DB.setRelevant(skema, terms, id);
+        DB.setRelevant(skema, terms, sid, id);
+        DB.closeConnection();
         try (PrintWriter out = response.getWriter()) {
             out.println("Sukses");
         }

@@ -1,12 +1,18 @@
 package search;
 
+import backend.Database;
+import backend.ProsesTeks;
+import backend.RelevanceFeedback;
 import backend.SearchHadis;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 /**
@@ -26,20 +32,56 @@ public class Search extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.setContentType("application/json;charset=UTF-8");
-        
+
         String kueri = request.getParameter("kueri");
         String skema = request.getParameter("skema");
-        
-        JSONObject hasil = new JSONObject();
-        
-        if (skema.equals("bim")) {
-            hasil  = new SearchHadis().searchBIM(kueri);
-        } else if (skema.contains("okapi")) {
-            hasil = new SearchHadis().searchOkapi(kueri);
+        String sid = request.getParameter("sid");
+
+        if (sid == null) {
+            HttpSession session = request.getSession();
+            sid = session.getId();
         }
-        
+
+        //calculate RF
+        RelevanceFeedback RF = new RelevanceFeedback();
+        Database DB = new Database();
+        ProsesTeks PT = new ProsesTeks();
+        ArrayList<String> p_kueri = PT.prosesKueri(kueri);
+
+        ArrayList<String> VR = DB.getVR(skema, sid, p_kueri);
+        ArrayList<String> VNR = DB.getVNR(skema, sid, p_kueri);
+
+        if (VNR.size() > 0 && VR.size() > 0) {
+            if (skema.equals("bim")) {
+                ArrayList<Double> pt = DB.getPt(p_kueri, sid);
+                ArrayList<Double> ut = DB.getUt(p_kueri, sid);
+                RF.calculateProbBIM(kueri, VR, VNR, pt, ut, sid);
+            } else if (skema.equals("okapi")) {
+                RF.calculateRfOkapi(kueri, VR, VNR, sid);
+            }
+        }
+
+        JSONObject hasil = new JSONObject();
+
+        if (skema.equals("bim")) {
+            hasil = new SearchHadis().searchBIM(kueri, sid);
+        } else if (skema.contains("okapi")) {
+            hasil = new SearchHadis().searchOkapi(kueri, sid);
+        }
+
+        //Submit hasil pencarian ke DB
+        ArrayList<String> ids = new ArrayList<>();
+        ArrayList<String> p_kueri2 = PT.prosesKueri(kueri);
+        JSONArray arr = (JSONArray) hasil.get("hasil");
+        for (int i = 0; i < arr.size(); i++) {
+            JSONObject arr_elem = (JSONObject) arr.get(i);
+            ids.add(arr_elem.get("key").toString());
+        }
+        DB.addRelevantDocs(skema, sid, p_kueri2, ids, (ArrayList<Double>)hasil.get("pt"), (ArrayList<Double>)hasil.get("ut"));
+        DB.closeConnection();
+
         try (PrintWriter out = response.getWriter()) {
+            out.println(sid + "|");
             out.println(hasil);
         }
     }
