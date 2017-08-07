@@ -5,9 +5,8 @@ import IndonesianNLP.IndonesianSentenceTokenizer;
 import IndonesianNLP.IndonesianStemmer;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
+import static search.InitDB.DB;
 
 /**
  *
@@ -99,7 +98,6 @@ public class ProsesTeks {
 
     public ArrayList<String> prosesKueri(String text) {
         ArrayList<String> arr = prosesTeks(text);
-        Database DB = new Database();
 
         HashSet<String> hs = new HashSet<>();
         hs.addAll(arr);
@@ -112,8 +110,6 @@ public class ProsesTeks {
                 arr.remove(s);
             }
         }
-        
-        DB.closeConnection();
 
         Collections.sort(arr);
         return arr;

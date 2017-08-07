@@ -1,6 +1,5 @@
 package rf;
 
-import backend.Database;
 import backend.ProsesTeks;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -9,6 +8,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import static search.InitDB.*;
 
 /**
  *
@@ -37,9 +37,7 @@ public class setRelevant extends HttpServlet {
         String id = request.getParameter("id");
         ArrayList<String> terms = PT.prosesKueri(kueri);
         
-        Database DB = new Database();
-        DB.setRelevant(skema, terms, sid, id);
-        DB.closeConnection();
+        DBRF.setRelevant(skema, terms, sid, id);
         try (PrintWriter out = response.getWriter()) {
             out.println("Sukses");
         }

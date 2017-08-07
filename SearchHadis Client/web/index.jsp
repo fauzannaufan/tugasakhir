@@ -29,5 +29,6 @@
                 </div>
             </form>
         </div>
+        <jsp:include page="/InitServlet" />
     </body>
 </html>

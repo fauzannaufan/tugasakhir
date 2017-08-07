@@ -1,8 +1,7 @@
 package search;
 
-import backend.Database;
 import backend.ProsesTeks;
-import backend.RelevanceFeedback;
+import rf.RelevanceFeedback;
 import backend.SearchHadis;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -14,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import static search.InitDB.*;
 
 /**
  *
@@ -44,17 +44,16 @@ public class Search extends HttpServlet {
 
         //calculate RF
         RelevanceFeedback RF = new RelevanceFeedback();
-        Database DB = new Database();
         ProsesTeks PT = new ProsesTeks();
         ArrayList<String> p_kueri = PT.prosesKueri(kueri);
 
-        ArrayList<String> VR = DB.getVR(skema, sid, p_kueri);
-        ArrayList<String> VNR = DB.getVNR(skema, sid, p_kueri);
+        ArrayList<String> VR = DBRF.getVR(skema, sid, p_kueri);
+        ArrayList<String> VNR = DBRF.getVNR(skema, sid, p_kueri);
 
         if (VNR.size() > 0 && VR.size() > 0) {
             if (skema.equals("bim")) {
-                ArrayList<Double> pt = DB.getPt(p_kueri, sid);
-                ArrayList<Double> ut = DB.getUt(p_kueri, sid);
+                ArrayList<Double> pt = DBRF.getPt(p_kueri, sid);
+                ArrayList<Double> ut = DBRF.getUt(p_kueri, sid);
                 RF.calculateProbBIM(kueri, VR, VNR, pt, ut, sid);
             } else if (skema.equals("okapi")) {
                 RF.calculateRfOkapi(kueri, VR, VNR, sid);
@@ -77,7 +76,7 @@ public class Search extends HttpServlet {
             JSONObject arr_elem = (JSONObject) arr.get(i);
             ids.add(arr_elem.get("key").toString());
         }
-        DB.addRelevantDocs(skema, sid, p_kueri2, ids, (ArrayList<Double>)hasil.get("pt"), (ArrayList<Double>)hasil.get("ut"));
+        DBRF.addRelevantDocs(skema, sid, p_kueri2, ids, (ArrayList<Double>)hasil.get("pt"), (ArrayList<Double>)hasil.get("ut"));
         DB.closeConnection();
 
         try (PrintWriter out = response.getWriter()) {

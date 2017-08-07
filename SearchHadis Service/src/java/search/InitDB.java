@@ -1,21 +1,30 @@
-package hadis;
+package search;
 
+import backend.Database;
+import hadis.DatabaseHadis;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import static search.InitDB.*;
+import rf.DatabaseRF;
 
 /**
  *
  * @author M. Fauzan Naufan
  */
-public class getDataHadis extends HttpServlet {
+public class InitDB extends HttpServlet {
+    
+    public static Database DB;
+    public static DatabaseHadis DBH;
+    public static DatabaseRF DBRF;
+    
+    private void InitDB() {
+        DB = new Database();
+        DBH = new DatabaseHadis();
+        DBRF = new DatabaseRF();
+    }
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -28,26 +37,15 @@ public class getDataHadis extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.setContentType("application/json;charset=UTF-8");
-
-        String id = request.getParameter("id");
-        ArrayList<String> arr = DBH.getHadis(id);
-        JSONObject obj = new JSONObject();
-        JSONObject obj2 = new JSONObject();
-        JSONArray arr2 = new JSONArray();
-
-        obj.put("imam", arr.get(0));
-        obj.put("haditsId", arr.get(1));
-        obj.put("indo", arr.get(2));
-        obj.put("kitab", arr.get(3));
-        obj.put("bab", arr.get(4));
-        obj.put("arab", arr.get(5));
-        obj.put("related", arr.get(6));
-        arr2.add(obj);
-        obj2.put("hadis", arr2);
-
+        
+        if (DB == null || DBH == null || DBRF == null) {
+            InitDB();
+            System.out.println("DB Initialized");
+        }
+        
+        response.setContentType("text/html;charset=UTF-8");
         try (PrintWriter out = response.getWriter()) {
-            out.println(obj2.toJSONString());
+            
         }
     }
 

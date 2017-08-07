@@ -10,6 +10,7 @@ import java.util.Map;
 import org.bson.Document;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import static search.InitDB.*;
 
 /**
  *
@@ -66,28 +67,31 @@ public class SearchHadis {
     }
 
     private JSONObject sortResulttoJSON(Map map, double[] pt, double[] ut) {
+        long t0 = System.currentTimeMillis();
         Map<String, Double> result = new LinkedHashMap<>();
         List<Map.Entry<String, Double>> list;
         List<Map.Entry<String, Double>> list2;
         JSONObject obj = new JSONObject();
         JSONArray arr = new JSONArray();
-        Database DB = new Database();
-
+        
+        long t1 = System.currentTimeMillis();
         list = new LinkedList<>(map.entrySet());
         Collections.sort(list, (Map.Entry<String, Double> o1, Map.Entry<String, Double> o2) -> (o2.getValue()).compareTo(o1.getValue()));
         list.stream().forEach((entry) -> {
             result.put(entry.getKey(), entry.getValue());
         });
 
+        long t2 = System.currentTimeMillis();
         //Cetak hasil pencarian
         list2 = new ArrayList<>(result.entrySet());
-        if (list2.size() >= 100) {
-            list2 = list2.subList(0, 100);
+        if (list2.size() >= 10) {
+            list2 = list2.subList(0, 10);
         }
-
+        
+        long t3 = System.currentTimeMillis();
         for (Map.Entry entry : list2) {
             JSONObject obj2 = new JSONObject();
-            ArrayList<String> arr2 = DB.getHadis(entry.getKey().toString());
+            ArrayList<String> arr2 = DBH.getHadis(entry.getKey().toString());
             obj2.put("key", entry.getKey());
             obj2.put("imam", arr2.get(0));
             obj2.put("haditsId", arr2.get(1));
@@ -95,8 +99,8 @@ public class SearchHadis {
             obj2.put("snippet", createSnippet(arr2.get(2)));
             arr.add(obj2);
         }
-        DB.closeConnection();
 
+        long t4 = System.currentTimeMillis();
         obj.put("hasil", arr);
         if (pt != null && ut != null) {
             JSONArray arr3 = new JSONArray();
@@ -113,14 +117,22 @@ public class SearchHadis {
             obj.put("pt", new ArrayList<>());
             obj.put("ut", new ArrayList<>());
         }
+        
+        long t5 = System.currentTimeMillis();
+        
+        System.out.println("Init vars : "+(t1-t0));
+        System.out.println("Sort by score : "+(t2-t1));
+        System.out.println("Sub list : "+(t3-t2));
+        System.out.println("Get data hadis : "+(t4-t3));
+        System.out.println("Pt ut : "+(t5-t4));
+        
         return obj;
     }
 
     public JSONObject searchBIM(String kueri, String sid) {
         //Inisialisasi kelas
         ProsesTeks PT = new ProsesTeks();
-        Database DB = new Database();
-
+        
         //Inisialisasi variabel
         int[] dfs;
         int term_no;
@@ -128,7 +140,7 @@ public class SearchHadis {
         Map<String, Double> map = new HashMap<>();
         Map<String, Double> resultmap = new HashMap<>();
         int N = DB.getN();
-
+        
         //Proses Kueri
         ArrayList<String> p_kueri = PT.prosesKueri(kueri);
         term_no = p_kueri.size();
@@ -139,11 +151,11 @@ public class SearchHadis {
             dfs[i] = DB.getDf(p_kueri.get(i));
             ids.add(DB.getIds(p_kueri.get(i)));
         }
-
+        
         //Menghitung pt dan ut
         double[] pt = new double[term_no];
         double[] ut = new double[term_no];
-        Document RF = DB.getProbBIM(p_kueri, sid);
+        Document RF = DBRF.getProbBIM(p_kueri, sid);
         for (int i = 0; i < term_no; i++) {
             if (RF == null) {
                 pt[i] = ((double) dfs[i] / N * 2 / 3) + ((double) 1 / 3);
@@ -165,28 +177,29 @@ public class SearchHadis {
                 map.put(id, map.getOrDefault(id, 0.0) + a + b);
             }
         }
-        
-        DB.closeConnection();
 
         //Menghilangkan dokumen dengan skor <= 0
         map.entrySet().stream().filter((entry) -> (entry.getValue() >= 0)).forEach((entry) -> {
             resultmap.put(entry.getKey(), entry.getValue());
         });
 
-        return sortResulttoJSON(resultmap, pt, ut);
+        long t0 = System.currentTimeMillis();
+        JSONObject a = sortResulttoJSON(resultmap, pt, ut);
+        long t1 = System.currentTimeMillis();
+        System.out.println("Sort BIM : "+(t1-t0));
+        return a;
     }
 
     public JSONObject searchOkapi(String kueri, String sid) {
         //Inisialisasi kelas
         ProsesTeks PT = new ProsesTeks();
-        Database DB = new Database();
 
         //Inisialisasi variabel
         ArrayList<ArrayList<String>> ids = new ArrayList<>();
         Map<String, Double> map = new HashMap<>();
         ArrayList<String> allIds;
         ArrayList<Double> RF;
-
+        
         //Get Doc Length, Doc Avg Length, N
         Map<String, Integer> allDocLength = DB.getAllDocLength();
         double Lave = DB.getDocAvgLength();
@@ -196,7 +209,7 @@ public class SearchHadis {
         ArrayList<String> p_kueri = PT.prosesKueri(kueri);
 
         //Kueri ke DB
-        RF = DB.getRfOkapi(p_kueri, sid);
+        RF = DBRF.getRfOkapi(p_kueri, sid);
         for (int i = 0; i < p_kueri.size(); i++) {
             ids.add(DB.getIds(p_kueri.get(i)));
         }
@@ -221,9 +234,11 @@ public class SearchHadis {
             }
         }
         
-        DB.closeConnection();
-
-        return sortResulttoJSON(map, null, null);
+        long t0 = System.currentTimeMillis();
+        JSONObject a = sortResulttoJSON(map, null, null);
+        long t1 = System.currentTimeMillis();
+        System.out.println("Sort Okapi : "+(t1-t0));
+        return a;
     }
 
 }

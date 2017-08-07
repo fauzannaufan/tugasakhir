@@ -1,6 +1,8 @@
-package backend;
+package rf;
 
+import backend.ProsesTeks;
 import java.util.ArrayList;
+import static search.InitDB.*;
 
 /**
  *
@@ -10,7 +12,6 @@ public class RelevanceFeedback {
     
     public void calculateProbBIM(String kueri, ArrayList<String> VR, ArrayList<String> VNR, ArrayList<Double> pt, ArrayList<Double> ut, String sid) {
         ProsesTeks PT = new ProsesTeks();
-        Database DB = new Database();
         
         ArrayList<String> p_kueri = PT.prosesKueri(kueri);
         ArrayList<ArrayList<String>> ids = new ArrayList<>();
@@ -47,13 +48,11 @@ public class RelevanceFeedback {
             newut.add((VNRt[i]+kappa*ut.get(i))/(VNR.size()+kappa));
         }
         
-        DB.updateBIM(p_kueri, newpt, newut, sid);
-        DB.closeConnection();
+        DBRF.updateBIM(p_kueri, newpt, newut, sid);
     }
     
     public void calculateRfOkapi(String kueri, ArrayList<String> VR, ArrayList<String> VNR, String sid) {
         ProsesTeks PT = new ProsesTeks();
-        Database DB = new Database();
         
         ArrayList<String> p_kueri = PT.prosesKueri(kueri);
         ArrayList<ArrayList<String>> ids = new ArrayList<>();
@@ -89,8 +88,7 @@ public class RelevanceFeedback {
                             ( (double)DB.getN() - DB.getDf(p_kueri.get(i)) - VR.size() + VRt[i] + 0.5 ) ) );
         }
         
-        DB.updateOkapi(p_kueri, rf, sid);
-        DB.closeConnection();
+        DBRF.updateOkapi(p_kueri, rf, sid);
     }
 
 }
