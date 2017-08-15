@@ -1,7 +1,6 @@
 package hadis;
 
 import backend.Database;
-import backend.Hadis;
 import java.util.ArrayList;
 import org.bson.Document;
 import org.json.simple.JSONArray;

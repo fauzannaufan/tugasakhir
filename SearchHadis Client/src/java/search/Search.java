@@ -3,6 +3,8 @@ package search;
 import com.sun.xml.ws.util.StringUtils;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
@@ -52,6 +54,7 @@ public class Search extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        new InitServlet().Init();
         response.setContentType("text/html;charset=UTF-8");
 
         String skema = request.getParameter("skema");
@@ -136,6 +139,23 @@ public class Search extends HttpServlet {
                         + "                <input type=\"radio\" name=\"skema\" value=\"okapi\" checked>Okapi\n");
             }
             out.println("           </form></div><br>\n");
+            
+            //Bagian evaluasi
+            DecimalFormat df = new DecimalFormat("#0.000");
+            df.setRoundingMode(RoundingMode.HALF_UP);
+            out.println("<table>");
+            out.println("<tr>");
+            out.println("<th>Precision</th>");
+            out.println("<th>Recall</th>");
+            out.println("<th>Av. Precision</th>");
+            out.println("</tr><tr>");
+            out.println("<td>");
+            out.println(df.format(obj.get("precision")));
+            out.println("</td><td>");
+            out.println(df.format(obj.get("recall")));
+            out.println("</td><td>");
+            out.println(df.format(obj.get("ap")));
+            out.println("</td></tr></table><br>");
 
             //Bagian hasil pencarian
             if (arr.isEmpty()) {

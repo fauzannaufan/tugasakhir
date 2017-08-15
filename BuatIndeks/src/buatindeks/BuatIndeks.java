@@ -56,7 +56,7 @@ public class BuatIndeks {
     
     public static void main (String args[]) {
         BuatIndeks I = new BuatIndeks();
-        String imam = "bukhari";
+        String imam = "malik";
         I.buatIndeks(imam);
     }
     

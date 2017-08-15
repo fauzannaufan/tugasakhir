@@ -1,4 +1,4 @@
-package backend;
+package hadis;
 
 import java.io.FileReader;
 import java.io.IOException;

@@ -17,6 +17,15 @@ import javax.ws.rs.core.MediaType;
  * @author M. Fauzan Naufan
  */
 public class InitServlet extends HttpServlet {
+    
+    public void Init() {
+        Form form = new Form();
+        Client client = ClientBuilder.newClient();
+        String url = "http://localhost:8080/SearchHadis_Service/InitDB";
+
+        String result = client.target(url).request(MediaType.APPLICATION_JSON)
+                .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED), String.class);
+    }
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -30,12 +39,7 @@ public class InitServlet extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         
-        Form form = new Form();
-        Client client = ClientBuilder.newClient();
-        String url = "http://localhost:8080/SearchHadis_Service/InitDB";
-
-        String result = client.target(url).request(MediaType.APPLICATION_JSON)
-                .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED), String.class);
+        Init();
         
         response.setContentType("text/html;charset=UTF-8");
         try (PrintWriter out = response.getWriter()) {

@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.regex.Pattern;
 import org.bson.Document;
 
 /**
@@ -22,13 +23,14 @@ public class Database {
 
     private final MongoCollection<Document> coll_indeks;
     private final MongoCollection<Document> coll_dl;
-    
+
     public final MongoCollection<Document> coll_okapi;
     public final MongoCollection<Document> coll_bim;
     public final MongoCollection<Document> coll_history;
     public final MongoCollection<Document> coll_hadis;
     public final MongoCollection<Document> coll_kitab;
     public final MongoCollection<Document> coll_bab;
+    public final MongoCollection<Document> coll_gt;
 
     private MongoClient client;
 
@@ -41,6 +43,7 @@ public class Database {
         coll_hadis = connect("hadis");
         coll_kitab = connect("kitab");
         coll_bab = connect("bab");
+        coll_gt = connect("gt");
     }
 
     public void closeConnection() {
@@ -117,6 +120,25 @@ public class Database {
                         .append("_id", 0)).into(new ArrayList<Document>());
 
         ArrayList<String> ids = (ArrayList<String>) arrays.get(0).get("id");
+        HashSet<String> hs = new HashSet<>();
+        hs.addAll(ids);
+        ids.clear();
+        ids.addAll(hs);
+
+        return ids;
+    }
+
+    public ArrayList<String> getIdsBukhari(String term) {
+        Document doc = coll_indeks.aggregate(Arrays.asList(
+                new Document("$match", new Document("nama", term)),
+                new Document("$unwind", "$id"),
+                new Document("$match", new Document("id", Pattern.compile("B"))),
+                new Document("$group", new Document("_id", "$_id")
+                        .append("id", new Document("$push", "$id"))),
+                new Document("$project", new Document("_id", 0))
+        )).first();
+        
+        ArrayList<String> ids = (ArrayList<String>) doc.get("id");
         HashSet<String> hs = new HashSet<>();
         hs.addAll(ids);
         ids.clear();

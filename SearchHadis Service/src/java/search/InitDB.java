@@ -1,6 +1,7 @@
 package search;
 
 import backend.Database;
+import evaluation.DatabaseEval;
 import hadis.DatabaseHadis;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -19,11 +20,13 @@ public class InitDB extends HttpServlet {
     public static Database DB;
     public static DatabaseHadis DBH;
     public static DatabaseRF DBRF;
+    public static DatabaseEval DE;
     
-    private void InitDB() {
+    public void InitDB() {
         DB = new Database();
         DBH = new DatabaseHadis();
         DBRF = new DatabaseRF();
+        DE = new DatabaseEval();
     }
 
     /**
@@ -38,7 +41,7 @@ public class InitDB extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         
-        if (DB == null || DBH == null || DBRF == null) {
+        if (DB == null || DBH == null || DBRF == null || DE == null) {
             InitDB();
             System.out.println("DB Initialized");
         }

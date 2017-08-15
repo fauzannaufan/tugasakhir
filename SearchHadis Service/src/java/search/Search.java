@@ -63,9 +63,9 @@ public class Search extends HttpServlet {
         JSONObject hasil = new JSONObject();
 
         if (skema.equals("bim")) {
-            hasil = new SearchHadis().searchBIM(kueri, sid);
+            hasil = new SearchHadis().searchBIM(kueri, sid, false);
         } else if (skema.contains("okapi")) {
-            hasil = new SearchHadis().searchOkapi(kueri, sid);
+            hasil = new SearchHadis().searchOkapi(kueri, sid, false);
         }
 
         //Submit hasil pencarian ke DB
