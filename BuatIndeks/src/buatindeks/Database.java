@@ -18,8 +18,18 @@ public class Database {
     private final MongoCollection<Document> coll_dl;
     private MongoClient client;
 
-    public Database() {
-        coll_indeks = connect("indeks");
+    public Database(String status) {
+        switch (status) {
+            case "live":
+                coll_indeks = connect("indeks");
+                break;
+            case "gt":
+                coll_indeks = connect("indeksgt");
+                break;
+            default:
+                coll_indeks = connect("indekstest");
+                break;
+        }
         coll_hadis = connect("hadis");
         coll_dl = connect("doclength");
     }

@@ -24,6 +24,10 @@
         <servlet-name>InitDB</servlet-name>
         <servlet-class>search.InitDB</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>CreateGT</servlet-name>
+        <servlet-class>evaluation.CreateGT</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>addRelevantDocs</servlet-name>
         <url-pattern>/addRelevantDocs</url-pattern>
@@ -47,6 +51,10 @@
     <servlet-mapping>
         <servlet-name>InitDB</servlet-name>
         <url-pattern>/InitDB</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>CreateGT</servlet-name>
+        <url-pattern>/CreateGT</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>

@@ -27,6 +27,18 @@ import org.json.simple.parser.ParseException;
  * @author M. Fauzan Naufan
  */
 public class Search extends HttpServlet {
+    
+    private void createGT(String kueri) {
+        Form form = new Form();
+        Client client = ClientBuilder.newClient();
+
+        form.param("kueri", kueri);
+        String url = "http://localhost:8080/SearchHadis_Service/CreateGT";
+
+        String result = client.target(url).request(MediaType.APPLICATION_JSON)
+                .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED), String.class);
+
+    }
 
     private String searchHadis(String kueri, String skema, String sid) {
         Form form = new Form();
@@ -54,7 +66,6 @@ public class Search extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        new InitServlet().Init();
         response.setContentType("text/html;charset=UTF-8");
 
         String skema = request.getParameter("skema");
@@ -63,6 +74,7 @@ public class Search extends HttpServlet {
         boolean notset = false;
         String sid = null;
 
+        //Check SID
         if (cookies != null) {
             int x = 0;
             while (x < cookies.length && !cookies[x].getName().equals("sid")) {
@@ -74,6 +86,8 @@ public class Search extends HttpServlet {
                 notset = true;
             }
         }
+        
+        //Buat Ground Truth
 
         //Cari hadis
         String result = searchHadis(kueri, skema, sid);
@@ -131,12 +145,23 @@ public class Search extends HttpServlet {
 
             //Bagian radio button
             out.println("               Skema pembobotan :");
-            if (skema.equals("bim")) {
-                out.println("                <input type=\"radio\" name=\"skema\" value=\"bim\" checked>BIM\n"
-                        + "                <input type=\"radio\" name=\"skema\" value=\"okapi\">Okapi\n");
-            } else {
-                out.println("                <input type=\"radio\" name=\"skema\" value=\"bim\">BIM\n"
-                        + "                <input type=\"radio\" name=\"skema\" value=\"okapi\" checked>Okapi\n");
+            switch (skema) {
+                case "bim":
+                    out.println("                <input type=\"radio\" name=\"skema\" value=\"vsm\">VSM\n"
+                            + "                <input type=\"radio\" name=\"skema\" value=\"bim\" checked>BIM\n"
+                            + "                <input type=\"radio\" name=\"skema\" value=\"okapi\">Okapi\n");
+                    break;
+                case "okapi":
+                    out.println("                <input type=\"radio\" name=\"skema\" value=\"vsm\">VSM\n"
+                            + "                <input type=\"radio\" name=\"skema\" value=\"bim\">BIM\n"
+                            + "                <input type=\"radio\" name=\"skema\" value=\"okapi\" checked>Okapi\n");
+                    break;
+                default:
+                    //VSM
+                    out.println("                <input type=\"radio\" name=\"skema\" value=\"vsm\" checked>VSM\n"
+                            + "                <input type=\"radio\" name=\"skema\" value=\"bim\">BIM\n"
+                            + "                <input type=\"radio\" name=\"skema\" value=\"okapi\">Okapi\n");
+                    break;
             }
             out.println("           </form></div><br>\n");
             

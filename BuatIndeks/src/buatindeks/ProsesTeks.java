@@ -96,27 +96,6 @@ public class ProsesTeks {
         return arr;
     }
     
-    public ArrayList<String> prosesKueri(String text) {
-        ArrayList<String> arr = prosesTeks(text);
-        Database DB = new Database();
-        
-        HashSet<String> hs = new HashSet<>();
-        hs.addAll(arr);
-        arr.clear();
-        arr.addAll(hs);
-        
-        for (int i=0;i<arr.size();i++) {
-            String s = arr.get(i);
-            if(!DB.find(s)) {
-                arr.remove(s);
-            }
-        }
-        
-        Collections.sort(arr);
-        DB.closeConnection();
-        return arr;
-    }
-    
     //Hanya untuk testing modul
     /*public static void main (String args[]) {
         ProsesTeks PT = new ProsesTeks();

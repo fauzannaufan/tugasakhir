@@ -12,7 +12,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.regex.Pattern;
 import org.bson.Document;
 
 /**
@@ -22,6 +21,8 @@ import org.bson.Document;
 public class Database {
 
     private final MongoCollection<Document> coll_indeks;
+    private final MongoCollection<Document> coll_indeksgt;
+    private final MongoCollection<Document> coll_indekstest;
     private final MongoCollection<Document> coll_dl;
 
     public final MongoCollection<Document> coll_okapi;
@@ -36,6 +37,8 @@ public class Database {
 
     public Database() {
         coll_indeks = connect("indeks");
+        coll_indeksgt = connect("indeksgt");
+        coll_indekstest = connect("indekstest");
         coll_okapi = connect("okapi");
         coll_dl = connect("doclength");
         coll_bim = connect("bim");
@@ -117,7 +120,7 @@ public class Database {
     public ArrayList<String> getIds(String term) {
         ArrayList<Document> arrays = coll_indeks.find(new Document("nama", term))
                 .projection(new Document("id", 1)
-                        .append("_id", 0)).into(new ArrayList<Document>());
+                        .append("_id", 0)).into(new ArrayList<>());
 
         ArrayList<String> ids = (ArrayList<String>) arrays.get(0).get("id");
         HashSet<String> hs = new HashSet<>();
@@ -127,18 +130,27 @@ public class Database {
 
         return ids;
     }
+    
+    public ArrayList<String> getIdsGt(String term) {
+        ArrayList<Document> arrays = coll_indeksgt.find(new Document("nama", term))
+                .projection(new Document("id", 1)
+                        .append("_id", 0)).into(new ArrayList<>());
 
-    public ArrayList<String> getIdsBukhari(String term) {
-        Document doc = coll_indeks.aggregate(Arrays.asList(
-                new Document("$match", new Document("nama", term)),
-                new Document("$unwind", "$id"),
-                new Document("$match", new Document("id", Pattern.compile("B"))),
-                new Document("$group", new Document("_id", "$_id")
-                        .append("id", new Document("$push", "$id"))),
-                new Document("$project", new Document("_id", 0))
-        )).first();
-        
-        ArrayList<String> ids = (ArrayList<String>) doc.get("id");
+        ArrayList<String> ids = (ArrayList<String>) arrays.get(0).get("id");
+        HashSet<String> hs = new HashSet<>();
+        hs.addAll(ids);
+        ids.clear();
+        ids.addAll(hs);
+
+        return ids;
+    }
+    
+    public ArrayList<String> getIdsTest(String term) {
+        ArrayList<Document> arrays = coll_indekstest.find(new Document("nama", term))
+                .projection(new Document("id", 1)
+                        .append("_id", 0)).into(new ArrayList<>());
+
+        ArrayList<String> ids = (ArrayList<String>) arrays.get(0).get("id");
         HashSet<String> hs = new HashSet<>();
         hs.addAll(ids);
         ids.clear();
@@ -155,7 +167,7 @@ public class Database {
     public ArrayList<String> getAllIds(String term) {
         ArrayList<Document> arrays = coll_indeks.find(new Document("nama", term))
                 .projection(new Document("id", 1)
-                        .append("_id", 0)).into(new ArrayList<Document>());
+                        .append("_id", 0)).into(new ArrayList<>());
 
         ArrayList<String> ids = (ArrayList<String>) arrays.get(0).get("id");
 

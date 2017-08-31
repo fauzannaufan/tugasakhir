@@ -13,8 +13,8 @@ public class Hadis {
     
     public Hadis() {}
     
-    public Hadis(String imam) {
-        Database DB = new Database();
+    public Hadis(String imam, String status) {
+        Database DB = new Database(status);
         data_hadis = DB.getDataHadis(imam);
         DB.closeConnection();
     }

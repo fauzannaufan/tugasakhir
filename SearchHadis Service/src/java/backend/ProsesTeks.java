@@ -114,6 +114,20 @@ public class ProsesTeks {
         Collections.sort(arr);
         return arr;
     }
+    
+    public ArrayList<String> prosesKueriVSM(String text) {
+        ArrayList<String> arr = prosesTeks(text);
+
+        for (int i = 0; i < arr.size(); i++) {
+            String s = arr.get(i);
+            if (!DB.find(s)) {
+                arr.remove(s);
+            }
+        }
+
+        Collections.sort(arr);
+        return arr;
+    }
 
     /*public static void main (String args[]) {
         IndonesianSentenceFormalization formalizer = new IndonesianSentenceFormalization();

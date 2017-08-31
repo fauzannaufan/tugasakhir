@@ -34,6 +34,43 @@ public class SearchHadis {
         return hasil;
     }
 
+    private ArrayList<Double> hitungWeight(ArrayList<String> p_kueri) {
+        ArrayList<Double> arr = new ArrayList<>();
+        int[] tf = new int[p_kueri.size()];
+        double[] idf = new double[p_kueri.size()];
+        double[] tf_idf = new double[p_kueri.size()];
+        int a = -1;
+        String s, t = "";
+        int N = DB.getN();
+
+        //Menangani term frequency dan idf
+        for (int i = 0; i < p_kueri.size(); i++) {
+            s = p_kueri.get(i);
+            if (s.equals(t)) {
+                tf[a] += 1;
+            } else {
+                a++;
+                tf[a] = 1;
+                int df = DB.getDf(s);
+                idf[a] = Math.log10((double) N / df);
+            }
+            t = s;
+        }
+
+        double total_weight = 0;
+        for (int i = 0; i < a + 1; i++) {
+            tf_idf[i] = (double) (1 + Math.log10(tf[i])) * idf[i];
+            total_weight += tf_idf[i] * tf_idf[i];
+        }
+
+        for (int i = 0; i < a + 1; i++) {
+            double b = (double) tf_idf[i] / Math.sqrt(total_weight);
+            arr.add(b);
+        }
+
+        return arr;
+    }
+
     private String createSnippet(String indo) {
         int i1;
         int i2;
@@ -64,11 +101,11 @@ public class SearchHadis {
             return indo.substring(i);
         } else {
             System.out.println(indo);
-            System.out.println(indo.substring(i+290,i+300));
-            if (indo.charAt(i+299) == Character.MIN_VALUE || indo.charAt(i+300) == Character.MIN_VALUE) {
+            System.out.println(indo.substring(i + 290, i + 300));
+            if (indo.charAt(i + 299) == Character.MIN_VALUE || indo.charAt(i + 300) == Character.MIN_VALUE) {
                 return indo.substring(i, i + 300);
             } else {
-                return indo.substring(i, indo.indexOf(" ", i+300));
+                return indo.substring(i, indo.indexOf(" ", i + 300));
             }
         }
     }
@@ -142,7 +179,7 @@ public class SearchHadis {
             }
 
             long t5 = System.currentTimeMillis();
-            
+
             ArrayList<Double> eval = new CalculateEval().Calculate(p_kueri, list2);
 
             obj.put("precision", eval.get(0));
@@ -182,16 +219,17 @@ public class SearchHadis {
         for (int i = 0; i < p_kueri.size(); i++) {
             dfs[i] = DB.getDf(p_kueri.get(i));
             if (gt) {
-                ids.add(DB.getIdsBukhari(p_kueri.get(i)));
+                ids.add(DB.getIdsGt(p_kueri.get(i)));
             } else {
-                ids.add(DB.getIds(p_kueri.get(i)));
+                ids.add(DB.getIdsTest(p_kueri.get(i)));
             }
         }
 
         //Menghitung pt dan ut
         double[] pt = new double[term_no];
         double[] ut = new double[term_no];
-        Document RF = DBRF.getProbBIM(p_kueri, sid);
+        Document RF = null;
+        //Document RF = DBRF.getProbBIM(p_kueri, sid);
         for (int i = 0; i < term_no; i++) {
             if (RF == null || gt) {
                 pt[i] = ((double) dfs[i] / N * 2 / 3) + ((double) 1 / 3);
@@ -245,12 +283,13 @@ public class SearchHadis {
         ArrayList<String> p_kueri = PT.prosesKueri(kueri);
 
         //Kueri ke DB
-        RF = DBRF.getRfOkapi(p_kueri, sid);
+        RF = null;
+        //RF = DBRF.getRfOkapi(p_kueri, sid);
         for (int i = 0; i < p_kueri.size(); i++) {
             if (gt) {
-                ids.add(DB.getIdsBukhari(p_kueri.get(i)));
+                ids.add(DB.getIdsGt(p_kueri.get(i)));
             } else {
-                ids.add(DB.getIds(p_kueri.get(i)));
+                ids.add(DB.getIdsTest(p_kueri.get(i)));
             }
         }
 
@@ -278,6 +317,66 @@ public class SearchHadis {
         JSONObject a = sortResulttoJSON(map, null, null, gt, p_kueri);
         long t1 = System.currentTimeMillis();
         System.out.println("Sort Okapi : " + (t1 - t0));
+        return a;
+    }
+
+    public JSONObject searchVSM(String kueri, String sid, boolean gt) {
+        //Inisialisasi kelas
+        ProsesTeks PT = new ProsesTeks();
+
+        //Inisialisasi variabel
+        ArrayList<ArrayList<String>> ids = new ArrayList<>();
+        Map<String, Double> map = new HashMap<>();
+        ArrayList<String> allIds;
+        ArrayList<Double> RF;
+        double doc_weight = 0;
+
+        //Proses Kueri
+        ArrayList<String> p_kueri = PT.prosesKueriVSM(kueri);
+
+        //Hitung weight kueri
+        ArrayList<Double> w_kueri = hitungWeight(p_kueri);
+
+        //Kueri ke DB
+        RF = null;
+        for (int i = 0; i < p_kueri.size(); i++) {
+            if (gt) {
+                ids.add(DB.getIdsGt(p_kueri.get(i)));
+            } else {
+                ids.add(DB.getIdsTest(p_kueri.get(i)));
+            }
+        }
+
+        //Menghitung nilai dokumen
+        for (int i = 0; i < ids.size(); i++) {
+            int df = DB.getDf(p_kueri.get(i));
+            allIds = DB.getAllIds(p_kueri.get(i));
+            for (int j = 0; j < ids.get(i).size(); j++) {
+                String id = ids.get(i).get(j);
+
+                int tftd = getTftd(allIds, id);
+                doc_weight += (double) 1 + Math.log10((double) tftd);
+            }
+            for (int j = 0; j < ids.get(i).size(); j++) {
+                String id = ids.get(i).get(j);
+
+                int tftd = getTftd(allIds, id);
+                double weight = (double) (1 + Math.log10((double) tftd)) / doc_weight;
+
+                double a;
+                if (RF == null || gt) {
+                    a = (double) w_kueri.get(0) * weight;
+                } else {
+                    a = 0;
+                }
+                map.put(id, map.getOrDefault(id, 0.0) + a);
+            }
+        }
+
+        long t0 = System.currentTimeMillis();
+        JSONObject a = sortResulttoJSON(map, null, null, gt, p_kueri);
+        long t1 = System.currentTimeMillis();
+        System.out.println("Sort VSM : " + (t1 - t0));
         return a;
     }
 

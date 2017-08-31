@@ -8,10 +8,16 @@ import java.util.ArrayList;
  */
 public class BuatIndeks {
     
+    String status;
+    
+    public BuatIndeks(String s) {
+        status = s;
+    }
+    
     public void buatIndeks(String imam) {
         //Inisialisasi variabel
-        Hadis H = new Hadis(imam);
-        Database DB = new Database();
+        Hadis H = new Hadis(imam, status);
+        Database DB = new Database(status);
         ProsesTeks PT = new ProsesTeks();
         
         String teks;
@@ -55,9 +61,8 @@ public class BuatIndeks {
     }
     
     public static void main (String args[]) {
-        BuatIndeks I = new BuatIndeks();
-        String imam = "malik";
-        I.buatIndeks(imam);
+        BuatIndeks I = new BuatIndeks("gt");
+        I.buatIndeks("bukhari");
     }
     
 }

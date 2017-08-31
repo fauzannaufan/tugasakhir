@@ -20,7 +20,8 @@
                 <input id="searchbar" class="text" name="kueri" type="text"><br>
                 <div>
                     Skema pembobotan :
-                    <input type="radio" name="skema" value="bim" required> BIM
+                    <input type="radio" name="skema" value="vsm" required checked> VSM
+                    <input type="radio" name="skema" value="bim"> BIM
                     <input type="radio" name="skema" value="okapi"> Okapi
                 </div>
                 <br>

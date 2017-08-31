@@ -15,6 +15,11 @@ public class DatabaseEval extends Database {
         Document doc = new Document("terms", terms).append("id", ids);
         coll_gt.insertOne(doc);
     }
+    
+    public boolean checkGT(ArrayList<String> terms) {
+        long L = coll_gt.count(new Document("terms", terms));
+        return L != 0;
+    }
 
     public boolean isRelevant(ArrayList<String> terms, String id) {
         long L = coll_gt.count(new Document("terms", terms).append("id", id));
