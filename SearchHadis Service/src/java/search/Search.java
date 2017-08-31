@@ -3,6 +3,7 @@ package search;
 import backend.ProsesTeks;
 import rf.RelevanceFeedback;
 import backend.SearchHadis;
+import evaluation.GroundTruth;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -36,6 +37,10 @@ public class Search extends HttpServlet {
         String kueri = request.getParameter("kueri");
         String skema = request.getParameter("skema");
         String sid = request.getParameter("sid");
+        
+        //Create Ground Truth
+        GroundTruth GT = new GroundTruth();
+        GT.createGT(kueri);
 
         if (sid == null) {
             HttpSession session = request.getSession();
@@ -60,12 +65,18 @@ public class Search extends HttpServlet {
             }
         }
 
-        JSONObject hasil = new JSONObject();
+        JSONObject hasil;
 
-        if (skema.equals("bim")) {
-            hasil = new SearchHadis().searchBIM(kueri, sid, false);
-        } else if (skema.contains("okapi")) {
-            hasil = new SearchHadis().searchOkapi(kueri, sid, false);
+        switch (skema) {
+            case "bim":
+                hasil = new SearchHadis().searchBIM(kueri, sid, false);
+                break;
+            case "okapi":
+                hasil = new SearchHadis().searchOkapi(kueri, sid, false);
+                break;
+            default:
+                hasil = new SearchHadis().searchVSM(kueri, sid, false);
+                break;
         }
 
         //Submit hasil pencarian ke DB

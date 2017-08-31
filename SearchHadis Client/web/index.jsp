@@ -17,8 +17,8 @@
 
         <div class="main">
             <form action="Search" method="post">
-                <input id="searchbar" class="text" name="kueri" type="text"><br>
-                <div>
+                <div class="search">
+                    <input id="searchbar" class="text" name="kueri" type="text" required><br>
                     Skema pembobotan :
                     <input type="radio" name="skema" value="vsm" required checked> VSM
                     <input type="radio" name="skema" value="bim"> BIM

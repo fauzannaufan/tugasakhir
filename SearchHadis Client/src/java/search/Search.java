@@ -27,18 +27,6 @@ import org.json.simple.parser.ParseException;
  * @author M. Fauzan Naufan
  */
 public class Search extends HttpServlet {
-    
-    private void createGT(String kueri) {
-        Form form = new Form();
-        Client client = ClientBuilder.newClient();
-
-        form.param("kueri", kueri);
-        String url = "http://localhost:8080/SearchHadis_Service/CreateGT";
-
-        String result = client.target(url).request(MediaType.APPLICATION_JSON)
-                .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED), String.class);
-
-    }
 
     private String searchHadis(String kueri, String skema, String sid) {
         Form form = new Form();
@@ -86,8 +74,6 @@ public class Search extends HttpServlet {
                 notset = true;
             }
         }
-        
-        //Buat Ground Truth
 
         //Cari hadis
         String result = searchHadis(kueri, skema, sid);
@@ -123,12 +109,14 @@ public class Search extends HttpServlet {
                     + "        <link rel=\"stylesheet\" href=\"main.css\">\n"
                     + "        <script type=\"text/javascript\">\n"
                     + "    function open_page(page_no) {\n"
-                    + "        for (var i=1;i<11;i++) {\n"
-                    + "            document.getElementById(\"page-\"+i).style.display = 'none';\n"
-                    + "            document.getElementById(\"pagination-\"+i).classList.remove('active');\n"
-                    + "        }\n"
                     + "        document.getElementById(\"page-\"+page_no).style.display = 'block';\n"
                     + "        document.getElementById(\"pagination-\"+page_no).classList.add('active');\n"
+                    + "        for (var i=1;i<11;i++) {\n"
+                    + "            if (i != page_no) {\n"
+                    + "            document.getElementById(\"page-\"+i).style.display = 'none';\n"
+                    + "            document.getElementById(\"pagination-\"+i).classList.remove('active');\n"
+                    + "            }\n"
+                    + "        }\n"
                     + "    }\n"
                     + "         </script>\n"
                     + "        <title>" + kueri + " - Cari Hadis!" + "</title>\n"
@@ -137,11 +125,11 @@ public class Search extends HttpServlet {
                     + "        <a href=\"index.jsp\"><h1>Cari Hadis!</h1></a>\n"
                     + "\n"
                     + "        <div class=\"main\">\n"
-                    + "            <div><form action=\"\" method=\"post\">\n");
+                    + "            <div class=\"search\"><form action=\"\" method=\"post\">\n");
 
             //Bagian search bar
-            out.println("                <input id=\"searchbar2\" class=\"text\" name=\"kueri\" type=\"text\" value=\"" + kueri + "\">\n"
-                    + "                <input id=\"searchbutton2\" type=\"submit\" value=\"Cari\">\n");
+            out.println("                <input id=\"searchbar2\" class=\"text\" name=\"kueri\" type=\"text\" value=\"" + kueri + "\" required>\n"
+                    + "                <input id=\"searchbutton2\" type=\"submit\" value=\"Cari\"><br>\n");
 
             //Bagian radio button
             out.println("               Skema pembobotan :");
@@ -168,7 +156,7 @@ public class Search extends HttpServlet {
             //Bagian evaluasi
             DecimalFormat df = new DecimalFormat("#0.000");
             df.setRoundingMode(RoundingMode.HALF_UP);
-            out.println("<table>");
+            out.println("<table align=\"center\" class=\"eval\">");
             out.println("<tr>");
             out.println("<th>Precision</th>");
             out.println("<th>Recall</th>");
@@ -193,15 +181,23 @@ public class Search extends HttpServlet {
                         out.println("<div id=\"page-" + (i + 1) + "\" >\n");
                     }
                     int j = 0;
+                    out.println("<table>");
                     while (j < 10 && i * 10 + j < arr.size()) {
                         JSONObject obj2 = (JSONObject) arr.get(i * 10 + j);
+                        out.println("<tr>");
+                        out.println("<td width=\"7%\"><a href=\""+obj2.get("key").toString()+"\"><img src=\"up.png\"></a></td>");
+                        out.println("<td width=\"7%\"><a href=\""+obj2.get("key").toString()+"\"><img src=\"down.png\"></a></td>");
+                        out.println("<td>");
                         String imam = StringUtils.capitalize(obj2.get("imam").toString());
-                        out.println("<h3 class=\"topic\"><a href=\"hadis.jsp?id=" + obj2.get("key").toString() + "\">"
+                        out.println("<h3 class=\"topic\"><a href=\"http://hadits.in/?"+imam+"/"+obj2.get("haditsId").toString()+"\">"
                                 + "HR. " + imam + " No. " + obj2.get("haditsId").toString()
                                 + "</a></h3>");
                         out.println("<p class=\"indo\">" + obj2.get("snippet").toString() + "</p>");
+                        out.println("</td>");
                         j++;
+                        out.println("</tr>");
                     }
+                    out.println("</table>");
                     out.println("</div>\n");
                 }
 

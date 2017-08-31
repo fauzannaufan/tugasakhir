@@ -61,8 +61,8 @@ public class BuatIndeks {
     }
     
     public static void main (String args[]) {
-        BuatIndeks I = new BuatIndeks("gt");
-        I.buatIndeks("bukhari");
+        BuatIndeks I = new BuatIndeks("test");
+        I.buatIndeks("muslim");
     }
     
 }

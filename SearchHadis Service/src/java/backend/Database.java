@@ -165,7 +165,7 @@ public class Database {
     }
 
     public ArrayList<String> getAllIds(String term) {
-        ArrayList<Document> arrays = coll_indeks.find(new Document("nama", term))
+        ArrayList<Document> arrays = coll_indekstest.find(new Document("nama", term))
                 .projection(new Document("id", 1)
                         .append("_id", 0)).into(new ArrayList<>());
 

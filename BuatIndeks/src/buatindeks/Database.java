@@ -33,7 +33,7 @@ public class Database {
         coll_hadis = connect("hadis");
         coll_dl = connect("doclength");
     }
-    
+
     public void closeConnection() {
         client.close();
     }
@@ -53,7 +53,7 @@ public class Database {
 
         return coll;
     }
-    
+
     public ArrayList<Document> getDataHadis(String imam) {
         ArrayList<Document> arr = coll_hadis.find(new Document("imam", imam))
                 .projection(new Document("indo", 1)
@@ -73,10 +73,12 @@ public class Database {
     }
 
     public void insertDocLength(String no_hadis, int length) {
-        Document doc = new Document("id", no_hadis)
-                .append("length", length);
+        if (coll_dl.count(new Document("id", no_hadis)) == 0) {
+            Document doc = new Document("id", no_hadis)
+                    .append("length", length);
 
-        coll_dl.insertOne(doc);
+            coll_dl.insertOne(doc);
+        }
     }
 
     public void insert(String no_hadis, String term) {
