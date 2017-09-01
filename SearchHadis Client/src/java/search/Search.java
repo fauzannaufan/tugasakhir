@@ -107,6 +107,7 @@ public class Search extends HttpServlet {
                     + "    <head>\n"
                     + "        <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n"
                     + "        <link rel=\"stylesheet\" href=\"main.css\">\n"
+                    + "        <script type=\"text/javascript\" src=\"javascript.js\"></script>\n"
                     + "        <script type=\"text/javascript\">\n"
                     + "    function open_page(page_no) {\n"
                     + "        document.getElementById(\"page-\"+page_no).style.display = 'block';\n"
@@ -121,7 +122,7 @@ public class Search extends HttpServlet {
                     + "         </script>\n"
                     + "        <title>" + kueri + " - Cari Hadis!" + "</title>\n"
                     + "    </head>\n"
-                    + "    <body>\n"
+                    + "    <body onload=\"init()\">\n"
                     + "        <a href=\"index.jsp\"><h1>Cari Hadis!</h1></a>\n"
                     + "\n"
                     + "        <div class=\"main\">\n"
@@ -185,8 +186,8 @@ public class Search extends HttpServlet {
                     while (j < 10 && i * 10 + j < arr.size()) {
                         JSONObject obj2 = (JSONObject) arr.get(i * 10 + j);
                         out.println("<tr>");
-                        out.println("<td width=\"7%\"><a href=\""+obj2.get("key").toString()+"\"><img src=\"up.png\"></a></td>");
-                        out.println("<td width=\"7%\"><a href=\""+obj2.get("key").toString()+"\"><img src=\"down.png\"></a></td>");
+                        out.println("<td width=\"7%\"><a onclick=\"vote_down('"+obj2.get("key").toString()+"')\"><img id=\"down-"+obj2.get("key").toString()+"\" src=\"down0.png\"></a></td>");
+                        out.println("<td width=\"7%\"><a onclick=\"vote_up('"+obj2.get("key").toString()+"')\"><img id=\"up-"+obj2.get("key").toString()+"\" src=\"up0.png\"></a></td>");
                         out.println("<td>");
                         String imam = StringUtils.capitalize(obj2.get("imam").toString());
                         out.println("<h3 class=\"topic\"><a href=\"http://hadits.in/?"+imam+"/"+obj2.get("haditsId").toString()+"\">"

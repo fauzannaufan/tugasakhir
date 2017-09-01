@@ -142,8 +142,8 @@ public class SearchHadis {
             obj.put("hasil", arr);
             
         } else {
-            if (list2.size() >= 50) {
-                list2 = list2.subList(0, 50);
+            if (list2.size() >= 100) {
+                list2 = list2.subList(0, 100);
             }
             
             long t3 = System.currentTimeMillis();
@@ -182,7 +182,11 @@ public class SearchHadis {
             
             obj.put("precision", eval.get(0));
             obj.put("recall", eval.get(1));
-            obj.put("ap", eval.get(2));
+            if (Double.isNaN(eval.get(2))) {
+                obj.put("ap", 0.0);
+            } else {
+                obj.put("ap", eval.get(2));
+            }
             
             long t6 = System.currentTimeMillis();
             
@@ -331,6 +335,7 @@ public class SearchHadis {
 
         //Proses Kueri
         ArrayList<String> p_kueri = PT.prosesKueriVSM(kueri);
+        ArrayList<String> p_kueri2 = PT.prosesKueri(kueri);
 
         //Hitung weight kueri
         ArrayList<Double> w_kueri = hitungWeight(p_kueri);
@@ -363,21 +368,28 @@ public class SearchHadis {
         }
         
         //Menghitung nilai dokumen
+        String s = "";
+        int k = -1;
         for (int i = 0; i < ids.size(); i++) {
             allIds = DB.getAllIds(p_kueri.get(i));
+            if (!p_kueri.get(i).equals(s)) {
+                k++;
+            }
+            s = p_kueri.get(i);
             for (int j = 0; j < ids.get(i).size(); j++) {
                 String id = ids.get(i).get(j);
                 
                 int tftd = getTftd(allIds, id);
                 double weight = 1.0 + Math.log10((double) tftd);
                 double n_weight = (double) weight/Math.sqrt(doc_weight.get(id));
-                double product = w_kueri.get(i) * n_weight;
+                double product = w_kueri.get(k) * n_weight;
+                
                 map.put(id, map.getOrDefault(id, 0.0) + product);
             }
         }
         
         long t0 = System.currentTimeMillis();
-        JSONObject a = sortResulttoJSON(map, null, null, gt, p_kueri);
+        JSONObject a = sortResulttoJSON(map, null, null, gt, p_kueri2);
         long t1 = System.currentTimeMillis();
         System.out.println("Sort VSM : " + (t1 - t0));
         return a;

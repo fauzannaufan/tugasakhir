@@ -62,7 +62,7 @@ public class BuatIndeks {
     
     public static void main (String args[]) {
         BuatIndeks I = new BuatIndeks("test");
-        I.buatIndeks("muslim");
+        I.buatIndeks("ibnumajah");
     }
     
 }

@@ -17,6 +17,16 @@ public class DatabaseRF extends Database {
         return L != 0;
     }
     
+    public boolean findVR(ArrayList<String> terms, String sid, String id) {
+        long L = coll_history.count(new Document("term", terms).append("SID", sid).append("VR", id));
+        return L != 0;
+    }
+    
+    public boolean findVNR(ArrayList<String> terms, String sid, String id) {
+        long L = coll_history.count(new Document("term", terms).append("SID", sid).append("VNR", id));
+        return L != 0;
+    }
+    
     public Document getProbBIM(ArrayList<String> terms, String sid) {
         Document doc = coll_bim.find(new Document("term", terms)
                 .append("sid", sid))
@@ -56,36 +66,54 @@ public class DatabaseRF extends Database {
         }
     }
 
-    public void addRelevantDocs(String skema, String sid, ArrayList<String> terms, ArrayList<String> ids, ArrayList<Double> pt, ArrayList<Double> ut) {
+    public void addRelevantDocs(String sid, ArrayList<String> terms, ArrayList<Double> pt, ArrayList<Double> ut) {
         Document doc;
         List<String> ids2 = new ArrayList<>();
-        if (ids.size() >= 10) {
-            ids2 = ids.subList(0, 10);
-        } else {
-            ids2.addAll(ids);
-        }
         if (pt.isEmpty()) {
-            doc = new Document("term", terms).append("SID", sid).append("skema", skema).append("VNR", ids2);
+            doc = new Document("term", terms).append("SID", sid).append("VNR", ids2);
         } else {
-            doc = new Document("term", terms).append("SID", sid).append("skema", skema).append("VNR", ids2).append("pt_lama", pt).append("ut_lama", ut);
+            doc = new Document("term", terms).append("SID", sid).append("VNR", ids2).append("pt_lama", pt).append("ut_lama", ut);
         }
 
-        long L = coll_history.count(new Document("term", terms).append("skema", skema).append("SID", sid));
+        long L = coll_history.count(new Document("term", terms).append("SID", sid));
         if (L == 0) {
             coll_history.insertOne(doc);
-        } else {
-            coll_history.replaceOne(new Document("term", terms), doc);
         }
 
     }
 
-    public void setRelevant(String skema, ArrayList<String> terms, String sid, String id) {
+    public void setRelevant(ArrayList<String> terms, String sid, String id) {
 
         Document doc1 = new Document("$push", new Document("VR", id));
         Document doc2 = new Document("$pull", new Document("VNR", id));
+        
+        if (!findVR(terms, sid, id)) {
+            coll_history.updateOne(new Document("term", terms).append("SID", sid), doc1);
+        }
+        coll_history.updateOne(new Document("term", terms).append("SID", sid), doc2);
+    }
+    
+    public void setNonRelevant(ArrayList<String> terms, String sid, String id) {
 
-        coll_history.updateOne(new Document("term", terms).append("SID", sid).append("skema", skema), doc1);
-        coll_history.updateOne(new Document("term", terms).append("SID", sid).append("skema", skema), doc2);
+        Document doc1 = new Document("$pull", new Document("VR", id));
+        Document doc2 = new Document("$push", new Document("VNR", id));
+
+        if (!findVNR(terms, sid, id)) {
+            coll_history.updateOne(new Document("term", terms).append("SID", sid), doc2);
+        }
+        coll_history.updateOne(new Document("term", terms).append("SID", sid), doc1);
+    }
+    
+    public void unRelevant(ArrayList<String> terms, String sid, String id) {
+
+        Document doc1 = new Document("$pull", new Document("VR", id));
+        coll_history.updateOne(new Document("term", terms).append("SID", sid), doc1);
+    }
+    
+    public void unNonRelevant(ArrayList<String> terms, String sid, String id) {
+
+        Document doc2 = new Document("$pull", new Document("VNR", id));
+        coll_history.updateOne(new Document("term", terms).append("SID", sid), doc2);
     }
 
     public ArrayList<String> getVR(String skema, String sid, ArrayList<String> terms) {
@@ -94,7 +122,7 @@ public class DatabaseRF extends Database {
                 .append("skema", skema))
                 .projection(new Document("VR", 1)
                         .append("_id", 0))
-                .into(new ArrayList<Document>());
+                .into(new ArrayList<>());
 
         if (arrays.size() > 0) {
             ArrayList<String> ids = (ArrayList<String>) arrays.get(0).get("VR");
@@ -114,7 +142,7 @@ public class DatabaseRF extends Database {
                 .append("skema", skema))
                 .projection(new Document("VNR", 1)
                         .append("_id", 0))
-                .into(new ArrayList<Document>());
+                .into(new ArrayList<>());
 
         if (arrays.size() > 0) {
             ArrayList<String> ids = (ArrayList<String>) arrays.get(0).get("VNR");

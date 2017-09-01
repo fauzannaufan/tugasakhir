@@ -12,7 +12,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import static search.InitDB.*;
 
@@ -80,14 +79,8 @@ public class Search extends HttpServlet {
         }
 
         //Submit hasil pencarian ke DB
-        ArrayList<String> ids = new ArrayList<>();
         ArrayList<String> p_kueri2 = PT.prosesKueri(kueri);
-        JSONArray arr = (JSONArray) hasil.get("hasil");
-        for (int i = 0; i < arr.size(); i++) {
-            JSONObject arr_elem = (JSONObject) arr.get(i);
-            ids.add(arr_elem.get("key").toString());
-        }
-        DBRF.addRelevantDocs(skema, sid, p_kueri2, ids, (ArrayList<Double>)hasil.get("pt"), (ArrayList<Double>)hasil.get("ut"));
+        DBRF.addRelevantDocs(sid, p_kueri2, (ArrayList<Double>)hasil.get("pt"), (ArrayList<Double>)hasil.get("ut"));
         DB.closeConnection();
 
         try (PrintWriter out = response.getWriter()) {

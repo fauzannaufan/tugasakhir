@@ -31,13 +31,27 @@ public class setRelevant extends HttpServlet {
         
         ProsesTeks PT = new ProsesTeks();
         
-        String skema = request.getParameter("skema");
         String kueri = request.getParameter("kueri");
         String sid = request.getParameter("sid");
         String id = request.getParameter("id");
+        String status = request.getParameter("status");
         ArrayList<String> terms = PT.prosesKueri(kueri);
         
-        DBRF.setRelevant(skema, terms, sid, id);
+        System.out.println(status);
+        switch (status) {
+            case "sR":
+                DBRF.setRelevant(terms, sid, id);
+                break;
+            case "sNR":
+                DBRF.setNonRelevant(terms, sid, id);
+                break;
+            case "uR":
+                DBRF.unRelevant(terms, sid, id);
+                break;
+            default:
+                DBRF.unNonRelevant(terms, sid, id);
+                break;
+        }
         try (PrintWriter out = response.getWriter()) {
             out.println("Sukses");
         }
