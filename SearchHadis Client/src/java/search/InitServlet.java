@@ -21,7 +21,8 @@ public class InitServlet extends HttpServlet {
     public void Init() {
         Form form = new Form();
         Client client = ClientBuilder.newClient();
-        String url = "http://localhost:8080/SearchHadis_Service/InitDB";
+        //String url = "http://localhost:8080/SearchHadis_Service/InitDB";
+        String url = "http://167.205.35.177:8080/SearchHadis_Service/InitDB";
 
         String result = client.target(url).request(MediaType.APPLICATION_JSON)
                 .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED), String.class);

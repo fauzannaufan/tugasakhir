@@ -9,7 +9,8 @@ function init() {
 }
 
 function sendtoDB(id,status) {
-    var url = "http://localhost:8080/SearchHadis_Service/setRelevant?kueri="+kueri+"&sid="+sid+"&id="+id+"&status="+status+"";
+    //var url = "http://localhost:8080/SearchHadis_Service/setRelevant?kueri="+kueri+"&sid="+sid+"&id="+id+"&status="+status+"";
+    var url = "http://167.205.35.177:8080/SearchHadis_Service/setRelevant?kueri="+kueri+"&sid="+sid+"&id="+id+"&status="+status+"";
     req = initRequest();
     req.open("GET", url, true);
     req.onreadystatechange = callback;

@@ -34,7 +34,6 @@ public class GroundTruth {
             for (int j = 0; j < rel.size(); j++) {
                 JSONObject obj2 = (JSONObject) rel.get(j);
                 if (!obj2.get("imam").equals("ahmad") && !obj2.get("imam").equals("bukhari")) {
-                    System.out.println("Catch");
                     hs.add(obj2.get("key").toString());
                 }
             }

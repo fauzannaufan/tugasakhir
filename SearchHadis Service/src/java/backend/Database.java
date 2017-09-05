@@ -20,23 +20,20 @@ import org.bson.Document;
  */
 public class Database {
 
-    private final MongoCollection<Document> coll_indeks;
     private final MongoCollection<Document> coll_indeksgt;
     private final MongoCollection<Document> coll_indekstest;
     private final MongoCollection<Document> coll_dl;
 
     public final MongoCollection<Document> coll_okapi;
     public final MongoCollection<Document> coll_bim;
+    public final MongoCollection<Document> coll_rocchio;
     public final MongoCollection<Document> coll_history;
     public final MongoCollection<Document> coll_hadis;
-    public final MongoCollection<Document> coll_kitab;
-    public final MongoCollection<Document> coll_bab;
     public final MongoCollection<Document> coll_gt;
 
     private MongoClient client;
 
     public Database() {
-        coll_indeks = connect("indeks");
         coll_indeksgt = connect("indeksgt");
         coll_indekstest = connect("indekstest");
         coll_okapi = connect("okapi");
@@ -44,9 +41,8 @@ public class Database {
         coll_bim = connect("bim");
         coll_history = connect("history");
         coll_hadis = connect("hadis");
-        coll_kitab = connect("kitab");
-        coll_bab = connect("bab");
         coll_gt = connect("gt");
+        coll_rocchio = connect("rocchio");
     }
 
     public void closeConnection() {
@@ -69,66 +65,16 @@ public class Database {
     }
 
     public boolean find(String term) {
-        long L = coll_indeks.count(new Document("nama", term));
+        long L = coll_indekstest.count(new Document("nama", term));
         return L != 0;
-    }
-
-    public boolean findId(String term, String id) {
-        long L = coll_indeks.count(new Document("nama", term).append("id", id));
-        return L != 0;
-    }
-
-    public void insertDocLength(String no_hadis, int length) {
-        Document doc = new Document("id", no_hadis)
-                .append("length", length);
-
-        coll_dl.insertOne(doc);
-    }
-
-    public void insert(String no_hadis, String term) {
-        Document doc = new Document("nama", term)
-                .append("df", 1)
-                .append("id", Arrays.asList(no_hadis));
-
-        coll_indeks.insertOne(doc);
-    }
-
-    public void update(String no_hadis, String term) {
-        Document doc = new Document().append("$inc",
-                new Document().append("df", 1))
-                .append("$push",
-                        new Document().append("id", no_hadis));
-
-        coll_indeks.updateOne(new Document().append("nama", term), doc);
-    }
-
-    public void addId(String no_hadis, String term) {
-        Document doc = new Document().append("$push",
-                new Document().append("id", no_hadis));
-
-        coll_indeks.updateOne(new Document().append("nama", term), doc);
     }
 
     public int getDf(String term) {
-        Document df = coll_indeks.find(new Document("nama", term))
+        Document df = coll_indekstest.find(new Document("nama", term))
                 .projection(new Document("df", 1)
                         .append("_id", 0)).first();
 
         return Integer.parseInt(df.get("df").toString());
-    }
-
-    public ArrayList<String> getIds(String term) {
-        ArrayList<Document> arrays = coll_indeks.find(new Document("nama", term))
-                .projection(new Document("id", 1)
-                        .append("_id", 0)).into(new ArrayList<>());
-
-        ArrayList<String> ids = (ArrayList<String>) arrays.get(0).get("id");
-        HashSet<String> hs = new HashSet<>();
-        hs.addAll(ids);
-        ids.clear();
-        ids.addAll(hs);
-
-        return ids;
     }
     
     public ArrayList<String> getIdsGt(String term) {

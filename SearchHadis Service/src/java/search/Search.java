@@ -4,6 +4,7 @@ import backend.ProsesTeks;
 import rf.RelevanceFeedback;
 import backend.SearchHadis;
 import evaluation.GroundTruth;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -36,7 +37,7 @@ public class Search extends HttpServlet {
         String kueri = request.getParameter("kueri");
         String skema = request.getParameter("skema");
         String sid = request.getParameter("sid");
-        
+
         //Create Ground Truth
         GroundTruth GT = new GroundTruth();
         GT.createGT(kueri);
@@ -51,21 +52,32 @@ public class Search extends HttpServlet {
         ProsesTeks PT = new ProsesTeks();
         ArrayList<String> p_kueri = PT.prosesKueri(kueri);
 
-        ArrayList<String> VR = DBRF.getVR(skema, sid, p_kueri);
-        ArrayList<String> VNR = DBRF.getVNR(skema, sid, p_kueri);
+        ArrayList<String> VR = DBRF.getVR(sid, p_kueri);
+        ArrayList<String> VNR = DBRF.getVNR(sid, p_kueri);
 
-        if (VNR.size() > 0 && VR.size() > 0) {
-            if (skema.equals("bim")) {
-                ArrayList<Double> pt = DBRF.getPt(p_kueri, sid);
-                ArrayList<Double> ut = DBRF.getUt(p_kueri, sid);
-                RF.calculateProbBIM(kueri, VR, VNR, pt, ut, sid);
-            } else if (skema.equals("okapi")) {
-                RF.calculateRfOkapi(kueri, VR, VNR, sid);
-            }
+        switch (skema) {
+            case "bim":
+                if (DBRF.checkBIM(p_kueri, sid)) {
+                    ArrayList<Double> pt = DBRF.getPt(p_kueri, sid);
+                    ArrayList<Double> ut = DBRF.getUt(p_kueri, sid);
+                    RF.calculateProbBIM(kueri, VR, VNR, pt, ut, sid);
+                }
+                break;
+            case "okapi":
+                if (!VR.isEmpty() || !VNR.isEmpty()) {
+                    RF.calculateRfOkapi(kueri, VR, VNR, sid, false);
+                }
+                break;
+            default:
+                if (!VR.isEmpty() || !VNR.isEmpty()) {
+                    RF.rocchio(kueri, VR, VNR, sid, false);
+                }
+                break;
         }
 
         JSONObject hasil;
 
+        //Search
         switch (skema) {
             case "bim":
                 hasil = new SearchHadis().searchBIM(kueri, sid, false);
@@ -78,9 +90,9 @@ public class Search extends HttpServlet {
                 break;
         }
 
-        //Submit hasil pencarian ke DB
+        //Kueri ke DB
         ArrayList<String> p_kueri2 = PT.prosesKueri(kueri);
-        DBRF.addRelevantDocs(sid, p_kueri2, (ArrayList<Double>)hasil.get("pt"), (ArrayList<Double>)hasil.get("ut"));
+        DBRF.addRelevantDocs(sid, p_kueri2, (ArrayList<Double>) hasil.get("pt"), (ArrayList<Double>) hasil.get("ut"));
         DB.closeConnection();
 
         try (PrintWriter out = response.getWriter()) {

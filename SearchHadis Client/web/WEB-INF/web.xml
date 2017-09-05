@@ -5,20 +5,12 @@
         <servlet-class>search.Search</servlet-class>
     </servlet>
     <servlet>
-        <servlet-name>HadisServlet</servlet-name>
-        <servlet-class>search.HadisServlet</servlet-class>
-    </servlet>
-    <servlet>
         <servlet-name>InitServlet</servlet-name>
         <servlet-class>search.InitServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>Search</servlet-name>
         <url-pattern>/Search</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>HadisServlet</servlet-name>
-        <url-pattern>/HadisServlet</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>InitServlet</servlet-name>

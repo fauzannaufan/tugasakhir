@@ -27,6 +27,12 @@ public class DatabaseRF extends Database {
         return L != 0;
     }
     
+    public boolean checkBIM(ArrayList<String> terms, String sid) {
+        long L = coll_history.count(new Document("term", terms).append("SID", sid)
+                .append("pt_lama", new Document("$exists", true).append("$ne", null)));
+        return L != 0;
+    }
+    
     public Document getProbBIM(ArrayList<String> terms, String sid) {
         Document doc = coll_bim.find(new Document("term", terms)
                 .append("sid", sid))
@@ -38,16 +44,38 @@ public class DatabaseRF extends Database {
         return doc;
     }
 
-    public void updateBIM(ArrayList<String> terms, ArrayList<Double> pt, ArrayList<Double> ut, String sid) {
-        Document doc = new Document("term", terms).append("sid", sid).append("pt", pt).append("ut", ut).append("date", new Date());
+    public void updateBIM(ArrayList<String> terms, ArrayList<Double> pt, ArrayList<Double> ut, String sid, boolean pseudo) {
+        Document doc = new Document("term", terms).append("sid", sid).append("pt", pt).append("ut", ut).append("pseudo", pseudo).append("date", new Date());
 
         coll_bim.insertOne(doc);
     }
 
-    public void updateOkapi(ArrayList<String> terms, ArrayList<Double> rf, String sid) {
-        Document doc = new Document("term", terms).append("sid", sid).append("rf", rf).append("date", new Date());
+    public void updateOkapi(ArrayList<String> terms, ArrayList<Double> rf, String sid, boolean pseudo) {
+        Document doc = new Document("term", terms).append("sid", sid).append("rf", rf).append("pseudo", pseudo).append("date", new Date());
 
         coll_okapi.insertOne(doc);
+    }
+    
+    public void updateRocchio(ArrayList<String> terms, ArrayList<Double> qm, String sid, boolean pseudo) {
+        Document doc = new Document("term", terms).append("sid", sid).append("qm", qm).append("pseudo", pseudo).append("date", new Date());
+
+        coll_rocchio.insertOne(doc);
+    }
+    
+    public ArrayList<Double> getRocchio(ArrayList<String> terms, String sid) {
+        Document doc = coll_rocchio.find(new Document("term", terms)
+                .append("sid", sid))
+                .sort(new Document("date", -1))
+                .projection(new Document("_id", 0)
+                        .append("qm", 1))
+                .first();
+        
+        if (doc != null) {
+            ArrayList<Double> qm = (ArrayList<Double>) doc.get("qm");
+            return qm;
+        } else {
+            return null;
+        }
     }
 
     public ArrayList<Double> getRfOkapi(ArrayList<String> terms, String sid) {
@@ -78,6 +106,18 @@ public class DatabaseRF extends Database {
         long L = coll_history.count(new Document("term", terms).append("SID", sid));
         if (L == 0) {
             coll_history.insertOne(doc);
+        } else {
+            //Update pt dan ut
+            if (!pt.isEmpty()) {
+                for (int i=0;i<pt.size();i++) {
+                    doc = new Document("$push", new Document("pt_lama", pt.get(i)));
+                    coll_history.updateOne(new Document("term", terms).append("SID", sid), doc);
+                }
+                for (int i=0;i<ut.size();i++) {
+                    doc = new Document("$push", new Document("ut_lama", ut.get(i)));
+                    coll_history.updateOne(new Document("term", terms).append("SID", sid), doc);
+                }
+            }
         }
 
     }
@@ -116,10 +156,9 @@ public class DatabaseRF extends Database {
         coll_history.updateOne(new Document("term", terms).append("SID", sid), doc2);
     }
 
-    public ArrayList<String> getVR(String skema, String sid, ArrayList<String> terms) {
+    public ArrayList<String> getVR(String sid, ArrayList<String> terms) {
         ArrayList<Document> arrays = coll_history.find(new Document("term", terms)
-                .append("SID", sid)
-                .append("skema", skema))
+                .append("SID", sid))
                 .projection(new Document("VR", 1)
                         .append("_id", 0))
                 .into(new ArrayList<>());
@@ -136,10 +175,9 @@ public class DatabaseRF extends Database {
         }
     }
 
-    public ArrayList<String> getVNR(String skema, String sid, ArrayList<String> terms) {
+    public ArrayList<String> getVNR(String sid, ArrayList<String> terms) {
         ArrayList<Document> arrays = coll_history.find(new Document("term", terms)
-                .append("SID", sid)
-                .append("skema", skema))
+                .append("SID", sid))
                 .projection(new Document("VNR", 1)
                         .append("_id", 0))
                 .into(new ArrayList<>());
@@ -158,11 +196,10 @@ public class DatabaseRF extends Database {
 
     public ArrayList<Double> getPt(ArrayList<String> terms, String sid) {
         ArrayList<Document> arr = coll_history.find(new Document("term", terms)
-                .append("SID", sid)
-                .append("skema", "bim"))
+                .append("SID", sid))
                 .projection(new Document("_id", 0)
                         .append("pt_lama", 1))
-                .into(new ArrayList<Document>());
+                .into(new ArrayList<>());
 
         if (arr.size() > 0) {
             ArrayList<Double> pt = (ArrayList<Double>) arr.get(0).get("pt_lama");
@@ -174,11 +211,10 @@ public class DatabaseRF extends Database {
 
     public ArrayList<Double> getUt(ArrayList<String> terms, String sid) {
         ArrayList<Document> arr = coll_history.find(new Document("term", terms)
-                .append("SID", sid)
-                .append("skema", "bim"))
+                .append("SID", sid))
                 .projection(new Document("_id", 0)
                         .append("ut_lama", 1))
-                .into(new ArrayList<Document>());
+                .into(new ArrayList<>());
 
         if (arr.size() > 0) {
             ArrayList<Double> ut = (ArrayList<Double>) arr.get(0).get("ut_lama");
@@ -187,4 +223,5 @@ public class DatabaseRF extends Database {
             return new ArrayList<>();
         }
     }
+    
 }
