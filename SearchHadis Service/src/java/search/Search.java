@@ -4,7 +4,6 @@ import backend.ProsesTeks;
 import rf.RelevanceFeedback;
 import backend.SearchHadis;
 import evaluation.GroundTruth;
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
