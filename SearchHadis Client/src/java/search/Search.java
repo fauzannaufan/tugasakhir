@@ -35,8 +35,8 @@ public class Search extends HttpServlet {
         form.param("kueri", kueri);
         form.param("skema", skema);
         form.param("sid", sid);
-        //String url = "http://localhost:8080/SearchHadis_Service/Search";
-        String url = "http://167.205.35.177:8080/SearchHadis_Service/Search";
+        String url = "http://localhost:8080/SearchHadis_Service/Search";
+        //String url = "http://167.205.35.177:8080/SearchHadis_Service/Search";
 
         String result = client.target(url).request(MediaType.APPLICATION_JSON)
                 .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED), String.class);

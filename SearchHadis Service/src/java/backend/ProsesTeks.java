@@ -72,8 +72,7 @@ public class ProsesTeks {
         IndonesianStemmer stemmer = new IndonesianStemmer();
 
         for (int i = 0; i < tokens.size(); i++) {
-            String s = formalizer.formalizeWord(tokens.get(i).toLowerCase());
-            s = stemmer.stem(s);
+            String s = stemmer.stem(tokens.get(i).toLowerCase());
             s = formalizer.formalizeWord(s);
             tokens.set(i, s);
         }

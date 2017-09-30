@@ -30,7 +30,7 @@ public class CalculateEval {
 
         double precision = (double) R / list2.size();
         double recall = (double) R / jumlah_relevan;
-        double ap = (double) total_precision / R;
+        double ap = (double) total_precision / jumlah_relevan;
         
         nilai.add(precision);
         nilai.add(recall);
